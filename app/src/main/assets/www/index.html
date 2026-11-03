@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0A0C">
+<title>VocabLuxe</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="scrim"></div>
+
+  <aside id="drawer" aria-label="Chủ đề">
+    <div class="brand">VOCABLUXE</div>
+    <div class="brand-sub">L A N G U A G E &nbsp; A T E L I E R</div>
+    <div class="cap">C H Ủ &nbsp; Đ Ề</div>
+    <div id="topics"></div>
+  </aside>
+
+  <main id="listPane">
+    <header class="lhead">
+      <div class="topbar">
+        <button id="btnMenu" class="icon-btn" aria-label="Mở danh sách chủ đề">☰</button>
+        <div class="brand sm">VOCABLUXE</div>
+        <div id="stats" class="stats-text"></div>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div id="langs" class="langs"></div>
+      <input id="search" type="search" placeholder="Tìm từ, nghĩa, phiên âm…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <div class="filters">
+        <div id="seg" class="seg">
+          <button data-v="all" class="on">Tất cả</button>
+          <button data-v="todo">Chưa thuộc</button>
+          <button data-v="done">Đã thuộc</button>
+          <button data-v="fav">★</button>
+        </div>
+        <select id="level" aria-label="Cấp độ"></select>
+      </div>
+      <div class="titlerow">
+        <div class="ttext"><div id="lTitle" class="ltitle"></div><div id="lCount" class="lcount"></div></div>
+        <button id="btnPractice" class="outline pill">⟳ Luyện tập</button>
+      </div>
+    </header>
+    <div id="list"><div id="rows"></div></div>
+  </main>
+
+  <section id="detail" aria-label="Chi tiết từ">
+    <div class="dtop">
+      <button id="btnBack" class="icon-btn" aria-label="Quay lại danh sách">‹</button>
+      <div class="chips">
+        <span id="chipTopic" class="chip gold"></span>
+        <span id="chipLvl" class="chip"></span>
+        <span id="chipPos" class="chip dim"></span>
+      </div>
+    </div>
+
+    <div id="dscroll">
+      <div class="swrow">
+        <label class="sw"><input type="checkbox" id="swReview"><i></i><span>Chế độ ôn tập (ẩn nghĩa)</span></label>
+      </div>
+      <div id="word" class="word"></div>
+      <div id="phon" class="phon"></div>
+
+      <div class="arow">
+        <button id="btnPlay" class="play" aria-label="Nghe phát âm">▶</button>
+        <button id="btnSlow" class="outline pill">Nghe chậm</button>
+        <label class="sw"><input type="checkbox" id="swAuto"><i></i><span>Tự phát âm</span></label>
+      </div>
+      <div class="hint">Vuốt trái/phải để chuyển từ</div>
+      <hr>
+
+      <div class="panel">
+        <div class="cap">N G H Ĩ A</div>
+        <div id="mean" class="mean"></div>
+        <div id="more" class="more"></div>
+        <div id="defEn" class="defen"></div>
+        <button id="btnReveal" class="outline pill">Hiện đáp án</button>
+      </div>
+
+      <div class="panel">
+        <div class="cap">N G Ữ &nbsp; C Ả N H</div>
+        <div class="exrow">
+          <button id="btnExPlay" class="play sm" aria-label="Nghe câu ví dụ">▶</button>
+          <div class="extext">
+            <div id="ex" class="ex"></div>
+            <div id="exPhon" class="exphon"></div>
+            <div id="exVi" class="exvi"></div>
+          </div>
+        </div>
+      </div>
+      <div class="source">Nguồn: Oxford 3000/5000 · HSK 1–6 · JLPT · TOPIK</div>
+    </div>
+
+    <div class="nav">
+      <button id="btnPrev" class="nbtn" aria-label="Từ trước">◀</button>
+      <button id="btnLearn" class="nbtn wide"></button>
+      <button id="btnFav" class="nbtn wide"></button>
+      <button id="btnNext" class="nbtn" aria-label="Từ tiếp theo">▶</button>
+    </div>
+  </section>
+
+  <div id="toast" role="status"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
