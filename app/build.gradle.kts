@@ -56,4 +56,16 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.activity:activity:1.9.3")
     implementation("androidx.core:core:1.15.0")
+
+    // Sửa lỗi "Duplicate class kotlin.collections.jdk8..." khi build:
+    // từ Kotlin 1.8, kotlin-stdlib-jdk7/jdk8 đã gộp vào kotlin-stdlib. Một thư viện phụ thuộc vẫn kéo bản cũ 1.6.21
+    // nên ép hai gói này lên 1.8.22 (bản rỗng, chỉ trỏ về kotlin-stdlib) để không còn class trùng.
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22") {
+            because("kotlin-stdlib-jdk7 đã là một phần của kotlin-stdlib")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22") {
+            because("kotlin-stdlib-jdk8 đã là một phần của kotlin-stdlib")
+        }
+    }
 }
