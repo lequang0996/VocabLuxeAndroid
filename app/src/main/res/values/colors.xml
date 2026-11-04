@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="vl_bg">#0A0A0C</color>
-    <color name="vl_gold">#D4AF37</color>
+    <!-- Nền cửa sổ khi app vừa mở (chế độ sáng); bản tối nằm trong values-night -->
+    <color name="vl_bg">#F4F5FB</color>
+    <!-- Màu chủ đạo (indigo) dùng làm nền icon ứng dụng -->
+    <color name="vl_primary">#4F46E5</color>
 </resources>

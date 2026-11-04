@@ -1,11 +1,12 @@
 'use strict';
-/* VocabLuxe (Android) – bản chuyển từ tool PC (engine.py + app.py). Toàn bộ dữ liệu nằm trong app; chỉ nghĩa tiếng Anh/Nhật
+/* VocabLuxe (Android) – giao diện sáng/tối; bản chuyển từ tool PC (engine.py + app.py). Toàn bộ dữ liệu nằm trong app; chỉ nghĩa tiếng Anh/Nhật
    và câu ví dụ còn thiếu mới tra online (có cache). Phát âm dùng TextToSpeech của máy, không tạo file. */
 (() => {
   const $ = (id) => document.getElementById(id);
   const ANDROID = window.AndroidBridge || null;
-  const ROW_H = 58;
+  const ROW_H = 66;
   const ALL_LEVELS = 'Mọi cấp';
+  const ic = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 
   const LANGS = {
     en: { code: 'en', name: 'Tiếng Anh', file: 'en.json', tts: 'en-US', gtx: 'en', tatoeba: 'eng', htmlLang: 'en',
@@ -71,8 +72,24 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } },
   };
-  const state = Object.assign({ auto_play: false, review: false, lang: 'en' }, ls.get('vl_state', {}));
+  const state = Object.assign({ auto_play: false, review: false, lang: 'en', theme: null }, ls.get('vl_state', {}));
   const saveState = () => ls.set('vl_state', state);
+
+  /* ---- Giao diện Sáng / Tối: lần đầu theo hệ thống, sau đó nhớ lựa chọn của người dùng ---- */
+  const systemDark = () => {
+    try { if (ANDROID && ANDROID.isSystemDark) return !!ANDROID.isSystemDark(); } catch (e) { /* bỏ qua */ }
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  };
+  const currentTheme = () => (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+  function applyTheme(t, persist) {
+    document.documentElement.setAttribute('data-theme', t);
+    const mc = document.querySelector('meta[name=theme-color]');
+    if (mc) mc.setAttribute('content', t === 'dark' ? '#0E1018' : '#F4F5FB');
+    const b = document.getElementById('btnTheme');
+    if (b) b.setAttribute('aria-label', t === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
+    if (persist) { state.theme = t; saveState(); }
+    try { if (ANDROID && ANDROID.setTheme) ANDROID.setTheme(t === 'dark'); } catch (e) { /* bỏ qua */ }
+  }
 
   const progRaw = ls.get('vl_progress', {});
   const prog = {};
@@ -326,7 +343,7 @@
   /*  Trạng thái giao diện                                               */
   /* ------------------------------------------------------------------ */
   const S = { lang: LANGS.en, words: [], view: [], levels: [], cur: null, curIndex: -1, info: {}, token: 0, topic: 'all',
-    reveal: true, practice: false, filter: 'all', loading: 0 };
+    reveal: true, practice: false, filter: 'all', level: ALL_LEVELS, loading: 0 };
   let TOPICS = [], TOPIC_MAP = {};
   const dataCache = {};
   const isWide = () => window.matchMedia('(min-width: 900px)').matches;
@@ -377,13 +394,12 @@
     state.lang = code; saveState();
     $('detail').dataset.lang = code;
     $('word').lang = cfg.htmlLang; $('ex').lang = cfg.htmlLang;
-    const sel = $('level');
-    sel.innerHTML = '';
-    for (const l of [ALL_LEVELS, ...S.levels]) { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); }
     for (const b of $('langs').children) b.classList.toggle('on', b.dataset.code === code);
-    S.topic = 'all'; S.filter = 'all';
+    S.topic = 'all'; S.filter = 'all'; S.level = ALL_LEVELS;
     for (const b of $('seg').children) b.classList.toggle('on', b.dataset.v === 'all');
     $('search').value = '';
+    $('btnClear').hidden = true;
+    updateLevelBtn();
     rebuildTopics();
     applyFilters();
     updateStats();
@@ -393,10 +409,10 @@
   function rebuildTopics() {
     const counts = {};
     for (const w of S.words) counts[w.topic] = (counts[w.topic] || 0) + 1;
-    const rows = [{ id: 'all', name: 'Tất cả chủ đề', sym: '❖', n: S.words.length }];
+    const rows = [{ id: 'all', name: 'Tất cả chủ đề', sym: null, n: S.words.length }];
     for (const t of TOPICS) if (counts[t.id]) rows.push({ id: t.id, name: t.name, sym: t.sym, n: counts[t.id] });
     const box = $('topics');
-    box.innerHTML = rows.map((r) => '<button class="trow" data-t="' + esc(r.id) + '"><span class="tsym">' + esc(r.sym) + '</span><span class="tname">' +
+    box.innerHTML = rows.map((r) => '<button class="trow" data-t="' + esc(r.id) + '"><span class="tsym">' + (r.sym ? esc(r.sym) + '\uFE0E' : ic('grid')) + '</span><span class="tname">' +
       esc(r.name) + '</span><span class="tn">' + r.n + '</span></button>').join('');
     highlightTopic();
   }
@@ -407,7 +423,7 @@
   function applyFilters() {
     const code = S.lang.code, p = progOf(code);
     const q = fold($('search').value.trim());
-    const lv = $('level').value || ALL_LEVELS;
+    const lv = S.level || ALL_LEVELS;
     const res = [];
     for (const w of S.words) {
       if (S.topic !== 'all' && w.topic !== S.topic) continue;
@@ -419,10 +435,10 @@
       if (q && !w._h.includes(q)) continue;
       res.push(w);
     }
-    const t = S.topic === 'all' ? { name: 'Tất cả chủ đề', sym: '❖' } : TOPIC_MAP[S.topic];
+    const t = S.topic === 'all' ? { name: 'Tất cả chủ đề' } : (TOPIC_MAP[S.topic] || { name: 'Chủ đề' });
     S.practice = false;
     highlightTopic(true);
-    showList(res, t.sym + '  ' + t.name, res.length + ' từ');
+    showList(res, t.name, res.length.toLocaleString('vi-VN') + ' từ');
   }
 
   function showList(res, title, subtitle) {
@@ -437,17 +453,17 @@
 
   /* ---------------- danh sách ảo (mượt với 17.000 từ) ---------------- */
   function rowHtml(i) {
-    const w = S.view[i];
-    const done = progOf(S.lang.code).learned.has(w.id);
+    const w = S.view[i], p = progOf(S.lang.code);
+    const done = p.learned.has(w.id), fav = p.fav.has(w.id);
     const sub = S.lang.code === 'en' ? (w.pos || '') : (w.py || '');
-    return '<div class="row' + (i === S.curIndex ? ' sel' : '') + (done ? ' done' : '') + '" data-i="' + i + '" style="top:' + (i * ROW_H) + 'px">' +
+    return '<div class="row' + (i === S.curIndex ? ' sel' : '') + (done ? ' done' : '') + '" data-i="' + i + '" style="top:' + (i * ROW_H) + 'px"><div class="card">' +
       '<div class="rmain"><div class="rw" lang="' + S.lang.htmlLang + '">' + esc(w.w) + '</div><div class="rs">' + esc(sub) + '</div></div>' +
-      '<div class="rl">' + esc(w.lvl) + '</div><div class="rc">' + (done ? '✓' : '') + '</div></div>';
+      '<div class="rtags">' + (fav ? ic('star', 'rf') : '') + '<span class="rl">' + esc(w.lvl) + '</span>' + (done ? ic('checkc', 'rc') : '') + '</div></div></div>';
   }
   function renderRows() {
     const list = $('list'), rows = $('rows');
     rows.style.height = S.view.length * ROW_H + 'px';
-    if (!S.view.length) { rows.style.height = 'auto'; rows.innerHTML = '<div class="empty">Không có từ nào khớp bộ lọc.</div>'; return; }
+    if (!S.view.length) { rows.style.height = 'auto'; rows.innerHTML = '<div class="empty">Không có từ nào khớp bộ lọc.<br>Thử bỏ bớt bộ lọc hoặc đổi từ khóa.</div>'; return; }
     const top = list.scrollTop, h = list.clientHeight || 600;
     const a = Math.max(0, Math.floor(top / ROW_H) - 8), b = Math.min(S.view.length, Math.ceil((top + h) / ROW_H) + 8);
     let html = '';
@@ -469,7 +485,7 @@
 
   function updateStats() {
     const code = S.lang.code, n = progOf(code).learned.size, total = Math.max(1, S.words.length);
-    $('stats').textContent = 'Đã thuộc ' + n + ' / ' + S.words.length + ' (' + Math.round((100 * n) / total) + '%)';
+    $('stats').textContent = 'Đã thuộc ' + n.toLocaleString('vi-VN') + ' / ' + S.words.length.toLocaleString('vi-VN') + ' từ · ' + Math.round((100 * n) / total) + '%';
     $('barFill').style.width = Math.min(100, (100 * n) / total) + '%';
   }
 
@@ -477,13 +493,31 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('drawer-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function openDetail() { body.classList.add('detail-open'); syncBack(); }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
   function openDrawer() { body.classList.add('drawer-open'); syncBack(); }
   function closeDrawer() { body.classList.remove('drawer-open'); syncBack(); }
+
+  /* ---- Bảng chọn cấp độ (thay cho dropdown mặc định của hệ thống) ---- */
+  function updateLevelBtn() {
+    const b = $('btnLevel');
+    b.hidden = !S.levels.length;
+    $('levelText').textContent = S.level;
+    b.classList.toggle('active', S.level !== ALL_LEVELS);
+  }
+  function openSheet() {
+    if (!S.levels.length) return;
+    const cnt = {};
+    for (const w of S.words) cnt[w.lvl] = (cnt[w.lvl] || 0) + 1;
+    const opts = [[ALL_LEVELS, S.words.length]].concat(S.levels.map((l) => [l, cnt[l] || 0]));
+    $('sheetList').innerHTML = opts.map(([l, n]) => '<button class="opt' + (l === S.level ? ' on' : '') + '" data-v="' + esc(l) + '">' +
+      '<span>' + esc(l) + '</span><span class="cnt">' + n.toLocaleString('vi-VN') + ' từ</span>' + ic('check', 'oc') + '</button>').join('');
+    body.classList.add('sheet-open'); syncBack();
+  }
+  function closeSheet() { body.classList.remove('sheet-open'); syncBack(); }
   window.matchMedia('(min-width: 900px)').addEventListener('change', syncBack);
 
   function selectIndex(i, { open }) {
@@ -511,7 +545,7 @@
     S.info = {};
     S.reveal = !(state.review || S.practice);
     const t = TOPIC_MAP[w.topic] || TOPIC_MAP.general;
-    $('chipTopic').textContent = t.sym + '  ' + t.name.toUpperCase();
+    $('chipTopic').textContent = t.name;
     $('chipLvl').textContent = w.lvl;
     let extra = w.pos || '';
     if (w.note) extra = (extra + '  (' + w.note + ')').trim();
@@ -568,9 +602,9 @@
     const p = progOf(S.lang.code);
     const l = $('btnLearn'), f = $('btnFav');
     const learned = p.learned.has(w.id), faved = p.fav.has(w.id);
-    l.textContent = learned ? '✓ Đã thuộc' : '○ Thuộc rồi';
+    l.innerHTML = ic(learned ? 'checkc' : 'circle') + '<span>' + (learned ? 'Đã thuộc' : 'Thuộc rồi') + '</span>';
     l.classList.toggle('learned', learned);
-    f.textContent = faved ? '★ Yêu thích' : '☆ Yêu thích';
+    f.innerHTML = ic('star') + '<span>Yêu thích</span>';
     f.classList.toggle('faved', faved);
   }
   function toggleLearned() {
@@ -585,7 +619,7 @@
     if (!w) return;
     const p = progOf(S.lang.code);
     if (p.fav.has(w.id)) p.fav.delete(w.id); else p.fav.add(w.id);
-    saveProgress(); refreshMarks();
+    saveProgress(); refreshMarks(); renderRows();
   }
 
   function startPractice() {
@@ -596,12 +630,12 @@
     const sample = pool.slice(0, Math.min(10, pool.length));
     S.practice = true;
     highlightTopic(false);
-    showList(sample, '⟳  Luyện tập', sample.length + ' từ ngẫu nhiên / ' + pool.length + ' đã thuộc · bấm lại để xáo trộn · nghĩa đang ẩn');
+    showList(sample, 'Luyện tập', sample.length + ' / ' + pool.length + ' từ đã thuộc · nghĩa ẩn');
   }
 
   /* ---------------- sự kiện ---------------- */
   $('btnMenu').addEventListener('click', openDrawer);
-  $('scrim').addEventListener('click', closeDrawer);
+  $('scrim').addEventListener('click', () => { closeDrawer(); closeSheet(); });
   $('btnBack').addEventListener('click', closeDetail);
   $('topics').addEventListener('click', (e) => {
     const b = e.target.closest('.trow');
@@ -611,9 +645,17 @@
     applyFilters();
   });
   let searchTimer = 0;
-  $('search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 220); });
+  $('search').addEventListener('input', () => { $('btnClear').hidden = !$('search').value; clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 220); });
+  $('btnClear').addEventListener('click', () => { $('search').value = ''; $('btnClear').hidden = true; $('search').focus(); applyFilters(); });
   $('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
-  $('level').addEventListener('change', applyFilters);
+  $('btnLevel').addEventListener('click', openSheet);
+  $('sheetList').addEventListener('click', (e) => {
+    const b = e.target.closest('.opt');
+    if (!b) return;
+    S.level = b.dataset.v;
+    updateLevelBtn(); closeSheet(); applyFilters();
+  });
+  $('btnTheme').addEventListener('click', () => applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true));
   $('seg').addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
@@ -647,7 +689,8 @@
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === 'arrowleft') move(-1);
+    if (k === 'escape') { if (!window.__back()) closeSheet(); }
+    else if (k === 'arrowleft') move(-1);
     else if (k === 'arrowright') move(1);
     else if (k === ' ') { e.preventDefault(); if (S.cur) speak(S.lang, S.cur.w, false); }
     else if (k === 's') { if (S.cur) speak(S.lang, S.cur.w, true); }
@@ -658,6 +701,7 @@
 
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
+    if (body.classList.contains('sheet-open')) { closeSheet(); return true; }
     if (body.classList.contains('drawer-open')) { closeDrawer(); return true; }
     if (!isWide() && body.classList.contains('detail-open')) { closeDetail(); return true; }
     return false;
@@ -665,6 +709,7 @@
 
   /* ---------------- khởi động ---------------- */
   (async () => {
+    applyTheme(state.theme === 'light' || state.theme === 'dark' ? state.theme : (systemDark() ? 'dark' : 'light'), false);
     buildLangButtons();
     await KV.ready;
     try { TOPICS = await (await fetch('data/topics.json')).json(); } catch (e) { TOPICS = []; }

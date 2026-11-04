@@ -1,7 +1,9 @@
 package com.vocabluxe.app;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.view.ViewGroup;
@@ -19,7 +21,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.SystemBarStyle;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.webkit.WebViewAssetLoader;
 
 import org.json.JSONObject;
@@ -39,14 +43,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * VocabLuxe: toàn bộ giao diện chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
- * Cầu nối AndroidBridge chỉ làm 2 việc: đọc giọng bằng TextToSpeech của máy và gọi HTTPS tới đúng 4 dịch vụ tra cứu.
+ * VocabLuxe: toàn bộ giao diện (sáng/tối) chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
+ * Cầu nối AndroidBridge làm 3 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 4 dịch vụ tra cứu,
+ * và đồng bộ màu thanh hệ thống với giao diện sáng/tối.
  */
 public class MainActivity extends ComponentActivity {
 
     private static final String ASSET_HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://" + ASSET_HOST + "/assets/www/index.html";
-    private static final int BG = 0xFF0A0A0C;
+    /** Màu nền khớp với biến --bg của giao diện web (sáng / tối). */
+    private static final int BG_LIGHT = 0xFFF4F5FB;
+    private static final int BG_DARK = 0xFF0E1018;
     private static final int MAX_BODY = 2 * 1024 * 1024;
     private static final String UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) "
             + "Chrome/124.0 Mobile Safari/537.36 VocabLuxe/1.0";
@@ -55,6 +62,7 @@ public class MainActivity extends ComponentActivity {
             "translate.googleapis.com", "api.mymemory.translated.net", "api.dictionaryapi.dev", "tatoeba.org"));
 
     private WebView web;
+    private FrameLayout rootView;
     private TextToSpeech tts;
     private boolean ttsReady = false;
     private boolean ttsInitializing = false;
@@ -65,17 +73,18 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final boolean dark = isSystemDark();
         EdgeToEdge.enable(this,
-                SystemBarStyle.dark(Color.TRANSPARENT),
-                SystemBarStyle.dark(Color.TRANSPARENT));
+                dark ? SystemBarStyle.dark(Color.TRANSPARENT) : SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+                dark ? SystemBarStyle.dark(Color.TRANSPARENT) : SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
 
         FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(BG);
+        rootView = root;
         web = new WebView(this);
-        web.setBackgroundColor(BG);
         root.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
+        applyTheme(dark); // giao diện web sẽ gọi lại setTheme() ngay khi tải xong, nếu người dùng đã chọn khác hệ thống
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars()
@@ -106,6 +115,24 @@ public class MainActivity extends ComponentActivity {
         } else {
             web.loadUrl(START_URL);
         }
+    }
+
+    /** Hệ thống đang ở chế độ tối? (dùng làm mặc định cho lần chạy đầu tiên). */
+    private boolean isSystemDark() {
+        int m = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        return m == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /** Đồng bộ nền + màu biểu tượng thanh trạng thái / thanh điều hướng với giao diện sáng/tối của web. */
+    private void applyTheme(boolean dark) {
+        int bg = dark ? BG_DARK : BG_LIGHT;
+        if (rootView != null) rootView.setBackgroundColor(bg);
+        if (web != null) web.setBackgroundColor(bg);
+        getWindow().getDecorView().setBackgroundColor(bg);
+        WindowInsetsControllerCompat c = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        c.setAppearanceLightStatusBars(!dark);
+        c.setAppearanceLightNavigationBars(!dark);
+        if (Build.VERSION.SDK_INT >= 29) getWindow().setNavigationBarContrastEnforced(false);
     }
 
     private void setupWebView() {
@@ -230,6 +257,16 @@ public class MainActivity extends ComponentActivity {
         public void speak(final String langTag, final String text, final boolean slow) {
             if (text == null || text.length() > 600 || langTag == null) return;
             runOnUiThread(() -> doSpeak(langTag, text, slow));
+        }
+
+        @JavascriptInterface
+        public boolean isSystemDark() {
+            return MainActivity.this.isSystemDark();
+        }
+
+        @JavascriptInterface
+        public void setTheme(final boolean dark) {
+            runOnUiThread(() -> applyTheme(dark));
         }
 
         @JavascriptInterface
