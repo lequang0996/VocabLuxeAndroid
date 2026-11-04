@@ -22,11 +22,15 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Runner ubuntu-latest đã có sẵn Android SDK, chỉ cần chấp nhận license và cài API 36
+      # Runner ubuntu-latest đã có sẵn Android SDK nhưng sdkmanager không nằm trong PATH,
+      # nên gọi bằng đường dẫn đầy đủ để chấp nhận license và cài API 36
       - name: Cài Android SDK 36
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKM=$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager | head -n 1)
+          echo "Dùng: $SDKM"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-36" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
