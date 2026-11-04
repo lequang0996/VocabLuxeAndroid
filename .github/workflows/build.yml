@@ -22,10 +22,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
-
+      # Runner ubuntu-latest đã có sẵn Android SDK, chỉ cần chấp nhận license và cài API 36
       - name: Cài Android SDK 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -40,7 +41,7 @@ jobs:
           name: VocabLuxe-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      # Bản đăng CH Play: chỉ chạy khi bạn đã thêm secrets (xem mục 3)
+      # Bản đăng CH Play: chỉ chạy khi đã thêm secrets (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD)
       - name: Tạo khóa ký từ secrets
         if: env.HAS_KEYSTORE == 'true'
         run: |
