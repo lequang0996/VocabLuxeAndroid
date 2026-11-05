@@ -43,6 +43,7 @@
     <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3.5h4.5V8M4 20.5 20.5 4M20.5 16v4.5H16M14.8 14.8l5.7 5.7M4 4l5 5"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.6v.1"/></symbol>
     <symbol id="i-snail" viewBox="0 0 24 24"><path d="M12 7.5V12l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></symbol>
   </defs>
 </svg>
@@ -61,6 +62,7 @@
     </div>
     <div class="cap dcap">Chủ đề</div>
     <div id="topics"></div>
+    <button id="btnAbout" class="aboutbtn"><svg class="ic sm"><use href="#i-info"/></svg><span>Nguồn &amp; giấy phép</span></button>
   </aside>
 
   <!-- Danh sách từ -->
@@ -149,7 +151,7 @@
           </div>
         </div>
       </div>
-      <div class="source">Nguồn: Oxford 3000/5000 · HSK 1–6 · JLPT · TOPIK</div>
+      <div id="source" class="source"></div>
     </div>
 
     <div class="nav">
@@ -166,6 +168,15 @@
     <div id="sheetTitle" class="sheet-title">Chọn cấp độ</div>
     <div id="sheetList" class="sheet-list"></div>
   </div>
+
+  <!-- Nguồn & giấy phép -->
+  <section id="about" aria-label="Nguồn và giấy phép">
+    <div class="dtop">
+      <button id="btnAboutBack" class="icon-btn" aria-label="Quay lại"><svg class="ic"><use href="#i-left"/></svg></button>
+      <div class="about-title">Nguồn &amp; giấy phép</div>
+    </div>
+    <div id="aboutBody"></div>
+  </section>
 
   <div id="toast" role="status"></div>
 </div>

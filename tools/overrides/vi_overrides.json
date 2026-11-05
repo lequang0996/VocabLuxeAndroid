@@ -1,0 +1,7 @@
+{
+  "_cach_dung": "Sửa tay nghĩa tiếng Việt: thêm dòng \"<id của từ>\": \"nghĩa đúng\". Id lấy từ trường id trong en/zh/ja/ko.json. Chạy lại workflow Build data, các nghĩa ở đây sẽ ghi đè bản dịch máy và mất nhãn 'dịch tự động'.",
+  "_vi_du": "xem các dòng bên dưới (xóa dấu _ ở đầu khóa nếu muốn dùng thử)",
+  "_en:bank|n.": "ngân hàng; bờ sông",
+  "_zh:爱": "yêu",
+  "_ja:私|わたし": "tôi"
+}
