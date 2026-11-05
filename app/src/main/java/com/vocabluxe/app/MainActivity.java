@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 
 /**
  * VocabLuxe: toàn bộ giao diện (sáng/tối) chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
- * Cầu nối AndroidBridge làm 3 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 2 dịch vụ tra cứu (tatoeba.org, api.dictionaryapi.dev),
+ * Cầu nối AndroidBridge làm 3 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 4 dịch vụ tra cứu,
  * và đồng bộ màu thanh hệ thống với giao diện sáng/tối.
  */
 public class MainActivity extends ComponentActivity {
@@ -57,9 +57,9 @@ public class MainActivity extends ComponentActivity {
     private static final int MAX_BODY = 2 * 1024 * 1024;
     private static final String UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) "
             + "Chrome/124.0 Mobile Safari/537.36 VocabLuxe/1.0";
-    /** Chỉ cho phép gọi đúng 2 dịch vụ tra cứu này (câu ví dụ và phiên âm tiếng Anh). */
+    /** Chỉ cho phép gọi các dịch vụ tra cứu này. */
     private static final Set<String> ALLOWED_HOSTS = new HashSet<>(Arrays.asList(
-            "api.dictionaryapi.dev", "tatoeba.org"));
+            "translate.googleapis.com", "api.mymemory.translated.net", "api.dictionaryapi.dev", "tatoeba.org"));
 
     private WebView web;
     private FrameLayout rootView;

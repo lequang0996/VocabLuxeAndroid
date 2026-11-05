@@ -1,6 +1,0 @@
-# Chỉ cần khi chạy build_data.py (không phải khi build app). CPU-only torch đủ dùng.
-torch
-transformers>=4.40
-sentencepiece
-sacremoses
-nltk

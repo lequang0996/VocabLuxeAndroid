@@ -1,7 +1,6 @@
 'use strict';
-/* VocabLuxe (Android) – giao diện sáng/tối. Toàn bộ nghĩa, phiên âm, cấp độ nằm trong dữ liệu của app (offline, ghi nguồn trong
-   màn hình "Nguồn & giấy phép"). Chỉ còn 2 dịch vụ tra cứu online: ví dụ câu (tatoeba.org) và phiên âm tiếng Anh (api.dictionaryapi.dev).
-   Phát âm dùng TextToSpeech của máy, không tạo file. */
+/* VocabLuxe (Android) – giao diện sáng/tối; bản chuyển từ tool PC (engine.py + app.py). Toàn bộ dữ liệu nằm trong app; chỉ nghĩa tiếng Anh/Nhật
+   và câu ví dụ còn thiếu mới tra online (có cache). Phát âm dùng TextToSpeech của máy, không tạo file. */
 (() => {
   const $ = (id) => document.getElementById(id);
   const ANDROID = window.AndroidBridge || null;
@@ -10,18 +9,20 @@
   const ic = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 
   const LANGS = {
-    en: { code: 'en', name: 'Tiếng Anh', file: 'en.json', tts: 'en-US', tatoeba: 'eng', htmlLang: 'en',
+    en: { code: 'en', name: 'Tiếng Anh', file: 'en.json', tts: 'en-US', gtx: 'en', tatoeba: 'eng', htmlLang: 'en',
           subLabel: 'LOẠI TỪ', levels: ['A1', 'A2', 'B1', 'B2', 'C1'] },
-    zh: { code: 'zh', name: 'Tiếng Trung', file: 'zh.json', tts: 'zh-CN', tatoeba: 'cmn', htmlLang: 'zh-CN',
+    zh: { code: 'zh', name: 'Tiếng Trung', file: 'zh.json', tts: 'zh-CN', gtx: 'zh-CN', tatoeba: 'cmn', htmlLang: 'zh-CN',
           subLabel: 'PINYIN', levels: ['HSK1', 'HSK2', 'HSK3', 'HSK4', 'HSK5', 'HSK6'] },
-    ja: { code: 'ja', name: 'Tiếng Nhật', file: 'ja.json', tts: 'ja-JP', tatoeba: 'jpn', htmlLang: 'ja',
+    ja: { code: 'ja', name: 'Tiếng Nhật', file: 'ja.json', tts: 'ja-JP', gtx: 'ja', tatoeba: 'jpn', htmlLang: 'ja',
           subLabel: 'CÁCH ĐỌC', levels: ['N5', 'N4', 'N3', 'N2', 'N1'] },
-    ko: { code: 'ko', name: 'Tiếng Hàn', file: 'ko.json', tts: 'ko-KR', tatoeba: 'kor', htmlLang: 'ko',
+    ko: { code: 'ko', name: 'Tiếng Hàn', file: 'ko.json', tts: 'ko-KR', gtx: 'ko', tatoeba: 'kor', htmlLang: 'ko',
           subLabel: 'ROMAJA', levels: [] },
   };
   const ORDER = ['en', 'zh', 'ja', 'ko'];
   const POS_NAMES = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition', pron: 'pronoun',
-    conj: 'conjunction', interj: 'interjection', exclam: 'interjection', det: 'determiner', modal: 'verb', aux: 'verb', auxiliary: 'verb', num: 'noun', number: 'noun', noun: 'noun' };
+    conj: 'conjunction', exclam: 'interjection', det: 'determiner', modal: 'verb', auxiliary: 'verb', number: 'noun', noun: 'noun' };
+  const POS_VI = { noun: 'danh từ', verb: 'động từ', adjective: 'tính từ', adverb: 'trạng từ', preposition: 'giới từ',
+    pronoun: 'đại từ', conjunction: 'liên từ', interjection: 'thán từ', determiner: 'từ hạn định' };
 
   /* ------------------------------------------------------------------ */
   /*  Tiện ích chuỗi                                                     */
@@ -145,6 +146,44 @@
   /* ------------------------------------------------------------------ */
   /*  Dịch vụ tra cứu (port từ engine.py)                                */
   /* ------------------------------------------------------------------ */
+  async function gtxTranslate(text, sl, tl = 'vi') {
+    const j = await getJson('https://translate.googleapis.com/translate_a/single',
+      { client: 'gtx', sl, tl, dt: ['t', 'bd'], q: text });
+    const main = ((j[0] || []).filter((s) => s && typeof s[0] === 'string').map((s) => s[0]).join('')).trim();
+    const byPos = {};
+    if (j.length > 1 && j[1]) {
+      for (const e of j[1]) {
+        if (e && typeof e[0] === 'string' && e.length > 1 && Array.isArray(e[1])) byPos[e[0].toLowerCase()] = e[1].filter((t) => typeof t === 'string');
+      }
+    }
+    if (!main) throw new Error('Google trả về rỗng');
+    return { main, byPos };
+  }
+  async function myMemoryTranslate(text, sl, tl = 'vi') {
+    const j = await getJson('https://api.mymemory.translated.net/get', { q: text, langpair: sl + '|' + tl });
+    const main = (((j.responseData || {}).translatedText) || '').trim();
+    if (!main || !['200', 'undefined', 'null'].includes(String(j.responseStatus))) throw new Error('MyMemory: ' + (j.responseDetails || 'rỗng'));
+    return { main, byPos: {} };
+  }
+  async function translateVi(text, sl) {
+    const errs = [];
+    for (const [name, fn] of [['Google', gtxTranslate], ['MyMemory', myMemoryTranslate]]) {
+      try { return await fn(text, sl); } catch (e) { errs.push(name + ': ' + String(e.message || e).slice(0, 70)); }
+    }
+    throw new Error(errs.join(' | '));
+  }
+  function buildMeaning(tr, posStr) {
+    const wanted = posNames(posStr);
+    const by = tr.byPos || {}, main = tr.main || '';
+    let primary = [];
+    for (const n of wanted) primary = primary.concat((by[n] || []).slice(0, 4));
+    if (main && !primary.some((p) => p.toLowerCase() === main.toLowerCase())) primary.unshift(main);
+    const seen = new Set(), mean = [];
+    for (const p of primary) { const k = p.toLowerCase(); if (!seen.has(k)) { seen.add(k); mean.push(p); } }
+    const more = Object.entries(by).filter(([n, terms]) => !wanted.includes(n) && terms.length)
+      .map(([n, terms]) => (POS_VI[n] || n) + ': ' + terms.slice(0, 3).join(', '));
+    return { mean: mean.slice(0, 4).join('; ') || main, more: more.slice(0, 3).join(' · ') };
+  }
   async function dictLookup(word) {
     let txt;
     try { txt = await httpGet('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word), 10000); }
@@ -180,7 +219,6 @@
       if (core.endsWith('하다') && core.length >= 4) stems.push(core.slice(0, -2));
       else if (core.endsWith('다') && core.length >= 3) stems.push(core.slice(0, -1));
     }
-    // Ưu tiên câu có bản dịch tiếng Việt; không có thì dùng câu có bản dịch tiếng Anh (hiển thị có nhãn)
     for (const needVi of [true, false]) {
       let results;
       try { results = await tatoebaSearch(base, code, needVi); } catch (e) { if (needVi) continue; throw e; }
@@ -191,14 +229,12 @@
         let score;
         if (cjk) { if (!stems.some((s) => s && t.includes(s))) continue; score = t.includes(base) ? 0 : 15; }
         else { if (!rx.test(t)) continue; score = 0; }
-        const tl = flatten(r.translations || []);
-        const d = tl.find((x) => x.lang === 'vie' && x.text);
-        const en = cjk && !d ? tl.find((x) => x.lang === 'eng' && x.text) : null;
-        const vi = d ? d.text.trim() : '', engText = en ? en.text.trim() : '';
-        score += Math.abs(t.length - (cjk ? 22 : 55)) - (vi ? 40 : (engText ? 10 : 0));
-        cands.push([score, t, vi, engText]);
+        const d = flatten(r.translations || []).find((x) => x.lang === 'vie' && x.text);
+        const vi = d ? d.text.trim() : '';
+        score += Math.abs(t.length - (cjk ? 22 : 55)) - (vi ? 40 : 0);
+        cands.push([score, t, vi]);
       }
-      if (cands.length) { cands.sort((a, b) => a[0] - b[0]); return { ex: cands[0][1], vi: cands[0][2], en: cands[0][3] }; }
+      if (cands.length) { cands.sort((a, b) => a[0] - b[0]); return { ex: cands[0][1], vi: cands[0][2] }; }
     }
     return {};
   }
@@ -211,58 +247,71 @@
     if (!isEmpty(r) || storeEmpty) KV.set(key, r);
     return r;
   }
-  const queryOf = (w) => w.w.split(/[,/]/)[0].trim();
+  const queryOf = (w) => w.w.split(',')[0].trim();
+  const keyTail = (w) => w.w + '|' + (w.pos || w.py || '');
+  const partTr = (lang, w) => cached('tr:' + lang.code + ':' + keyTail(w), async () => {
+    const tr = await translateVi(queryOf(w), lang.gtx);
+    return lang.code === 'en' ? buildMeaning(tr, w.pos || '') : { mean: tr.main, more: '' };
+  });
   const partDic = (w) => cached('dic:en:' + w.w.toLowerCase(), () => dictLookup(queryOf(w)));
-  const partEx = (lang, w) => cached('ex3:' + lang.code + ':' + w.w.toLowerCase() + '|' + (w.pos || w.py || ''), async () => {
+  const partEx = (lang, w) => cached('ex2:' + lang.code + ':' + w.w.toLowerCase() + '|' + (w.pos || w.py || ''), async () => {
     const ex = await tatoebaExample(queryOf(w), lang.code);
-    if (!isEmpty(ex)) return ex;
+    if (!isEmpty(ex)) {
+      if (!ex.vi) ex.vi = (await translateVi(ex.ex, lang.gtx)).main;
+      return ex;
+    }
     if (lang.code === 'en') {
       const d = await partDic(w);
       const names = posNames(w.pos);
       const pool = d.defs.filter((x) => x.ex).sort((a, b) => (names.includes(a.pos) ? 0 : 1) - (names.includes(b.pos) ? 0 : 1));
-      if (pool.length) return { ex: pool[0].ex, vi: '', en: '' };
+      if (pool.length) return { ex: pool[0].ex, vi: (await translateVi(pool[0].ex, 'en')).main };
     }
     return {};
   }, false);
 
   const localPhon = (code, w) => (code === 'ja' ? (w.py || '') + '   ·   ' + (w.ro || '') : (w.py || ''));
   const localMore = (code, w) => {
-    const bits = [];
-    if (code === 'zh' && w.hv) bits.push('Âm Hán Việt: ' + w.hv);
-    if (code === 'ja' && w.hv) bits.push('Hán Việt: ' + w.hv);
+    if (code === 'zh' && w.hv) return 'Âm Hán Việt: ' + w.hv;
+    if (code === 'ja' && w.hv) return 'Hán Việt: ' + w.hv;
     if (code === 'ko') {
-      if (w.hanja) bits.push('Hán tự: ' + w.hanja);
-      if (w.hv) bits.push('Hán Việt: ' + w.hv);
+      const bits = [];
+      if (w.hv) bits.push('Hán tự: ' + w.hv);
+      if (w.lesson) bits.push('Bài: ' + w.lesson);
+      return bits.join('   ·   ');
     }
-    if (w.auto && w.mean) bits.push('Nghĩa dịch tự động');
-    return bits.join('   ·   ');
+    return '';
   };
 
-  // Nghĩa, phiên âm (trừ tiếng Anh), cấp độ lấy từ dữ liệu trong app; chỉ phiên âm tiếng Anh và câu ví dụ còn tra online (có cache).
   async function fetchInfo(lang, w, onPart) {
     const code = lang.code;
-    const out = { mean: w.mean || '', more: localMore(code, w), phon: '', def_en: '', ex: w.ex || '', ex_phon: w.ex_py || '', ex_vi: w.ex_vi || '',
-      failed: [], done: ['tr'], err: '' };
+    const out = { mean: '', more: '', phon: '', def_en: '', ex: '', ex_phon: '', ex_vi: '', failed: [], done: [], err: '' };
     const snap = () => ({ ...out, failed: [...out.failed], done: [...out.done] });
     const tasks = [];
     const run = (kind, p) => tasks.push(p.then((r) => ({ kind, r }), (e) => ({ kind, e })));
-    if (code === 'en') run('dic', partDic(w));
-    else { out.phon = localPhon(code, w); out.done.push('dic'); }
-    if (out.ex) out.done.push('ex'); else run('ex', partEx(lang, w));
-    if (onPart) onPart(snap());
+    if (code === 'en') {
+      run('tr', partTr(lang, w)); run('dic', partDic(w)); run('ex', partEx(lang, w));
+    } else {
+      Object.assign(out, { mean: w.mean || '', more: localMore(code, w), phon: localPhon(code, w),
+        ex: w.ex || '', ex_phon: w.ex_py || '', ex_vi: w.ex_vi || '' });
+      out.done.push('dic');
+      if (out.mean) out.done.push('tr'); else run('tr', partTr(lang, w));
+      if (out.ex) out.done.push('ex'); else run('ex', partEx(lang, w));
+      if (onPart) onPart(snap());
+    }
     const names = posNames(w.pos);
     await Promise.all(tasks.map(async (t) => {
       const { kind, r, e } = await t;
       if (e) { out.failed.push(kind); out.err = (out.err ? out.err + ' ' : '') + String(e.message || e).slice(0, 160); }
-      else if (kind === 'dic') {
+      else if (kind === 'tr') {
+        out.mean = r.mean || '';
+        if (code === 'en') out.more = r.more || '';
+        else if (w.auto || !w.mean) out.more = (out.more ? out.more + '   ·   ' : '') + 'Nghĩa dịch tự động';
+      } else if (kind === 'dic') {
         out.phon = r.phon || '';
         const defs = r.defs || [];
         const pick = defs.find((d) => names.includes(d.pos)) || defs[0];
         out.def_en = pick ? pick.def : '';
-      } else if (kind === 'ex') {
-        out.ex = r.ex || '';
-        out.ex_vi = r.vi || (r.en ? '(Tiếng Anh) ' + r.en : '');
-      }
+      } else if (kind === 'ex') { out.ex = r.ex || ''; out.ex_vi = r.vi || ''; }
       out.done.push(kind);
       if (onPart) onPart(snap());
     }));
@@ -289,51 +338,6 @@
     } else say('Thiết bị không hỗ trợ phát âm.', 6000);
   }
   window.__ttsError = (msg) => say(msg, 9000);
-
-  /* ------------------------------------------------------------------ */
-  /*  Nguồn & giấy phép                                                  */
-  /* ------------------------------------------------------------------ */
-  const SRC_SHORT = { cefrj: 'CEFR-J', octanove: 'Octanove', hsk: 'complete-hsk-vocabulary', cedict: 'CC-CEDICT', jlpt: 'Tanos (JLPT)',
-    krdict: 'Từ điển cơ bản tiếng Hàn', unihan: 'Unihan', wordnet: 'WordNet', 'opus-mt-en-vi': 'dịch máy opus-mt' };
-  let SOURCES = null;
-  async function loadSources() {
-    if (SOURCES !== null) return SOURCES;
-    try { const r = await fetch('data/sources.json'); if (!r.ok) throw new Error(); SOURCES = nfc(await r.json()); } catch (e) { SOURCES = false; }
-    return SOURCES;
-  }
-  function updateSourceLine(data) {
-    const el = $('source');
-    const ids = data && data.meta && data.meta.sources;
-    el.textContent = ids ? 'Nguồn: ' + ids.map((i) => SRC_SHORT[i] || i).join(' · ') + ' · ví dụ: Tatoeba' : 'Nguồn: xem mục "Nguồn & giấy phép" trong menu';
-  }
-  async function renderAbout() {
-    const box = $('aboutBody');
-    box.innerHTML = '<div class="empty">Đang tải…</div>';
-    const src = await loadSources();
-    let h = '<div class="intro">VocabLuxe dùng dữ liệu từ các nguồn mở dưới đây. Giấy phép ghi theo công bố của từng nguồn; đây không phải tư vấn pháp lý.</div>';
-    if (!src) {
-      h += '<div class="warn">Bản dữ liệu này chưa có thông tin nguồn (chưa được dựng bằng tools/build_data.py).</div>';
-    } else {
-      for (const n of (src.notes || [])) h += '<div class="warn">' + esc(n) + '</div>';
-      h += '<h3 class="cap">Giấy phép dữ liệu từng ngôn ngữ</h3>';
-      for (const c of ORDER) {
-        const b = (src.built || {})[c];
-        if (b) h += '<div class="srccard"><div class="sn">' + esc(LANGS[c].name) + '</div><div class="sl">' + esc(b.license || '') + '</div>' +
-          '<div class="sa">' + (b.word_count || 0).toLocaleString('vi-VN') + ' từ</div></div>';
-      }
-      h += '<h3 class="cap">Nguồn dữ liệu</h3>';
-      for (const s of (src.sources || [])) {
-        h += '<div class="srccard"><div class="sn">' + esc(s.name) + '</div><div class="sa">' + esc(s.author || '') + '</div>' +
-          '<div class="sl"><b>Giấy phép:</b> ' + esc(s.license || '') + '</div>' +
-          '<div class="sl"><b>Dùng cho:</b> ' + esc(s.used_for || '') + '</div>' +
-          '<div class="su">' + esc(s.url || '') + '</div></div>';
-      }
-    }
-    h += '<h3 class="cap">Dịch vụ tra cứu trực tuyến</h3>' +
-      '<div class="srccard"><div class="sn">Tatoeba</div><div class="sl">Câu ví dụ do cộng đồng đóng góp; ưu tiên bản dịch tiếng Việt, không có thì dùng tiếng Anh (có nhãn).</div><div class="su">https://tatoeba.org</div></div>' +
-      '<div class="srccard"><div class="sn">Free Dictionary API</div><div class="sl">Phiên âm và ví dụ dự phòng cho tiếng Anh.</div><div class="su">https://dictionaryapi.dev</div></div>';
-    box.innerHTML = h;
-  }
 
   /* ------------------------------------------------------------------ */
   /*  Trạng thái giao diện                                               */
@@ -376,8 +380,8 @@
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         for (const w of data.words) {
-          for (const k of ['w', 'py', 'ro', 'hv', 'hanja', 'mean', 'ex', 'ex_py', 'ex_vi', 'pos', 'note']) if (typeof w[k] === 'string') w[k] = w[k].normalize('NFC');
-          w._h = fold([w.w, w.py, w.ro, w.mean, w.pos, w.hv, w.hanja].filter(Boolean).join(' '));
+          for (const k of ['w', 'py', 'ro', 'hv', 'mean', 'ex', 'ex_py', 'ex_vi', 'pos', 'note', 'lesson']) if (typeof w[k] === 'string') w[k] = w[k].normalize('NFC');
+          w._h = fold([w.w, w.py, w.ro, w.mean, w.pos, w.hv, w.lesson].filter(Boolean).join(' '));
         }
         dataCache[code] = data;
       } catch (e) { say('Không mở được dữ liệu ' + cfg.name + ': ' + e.message, 8000); return; }
@@ -396,7 +400,6 @@
     $('search').value = '';
     $('btnClear').hidden = true;
     updateLevelBtn();
-    updateSourceLine(data);
     rebuildTopics();
     applyFilters();
     updateStats();
@@ -490,13 +493,11 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('about-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function openDetail() { body.classList.add('detail-open'); syncBack(); }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
-  function openAbout() { closeDrawer(); body.classList.add('about-open'); syncBack(); renderAbout(); }
-  function closeAbout() { body.classList.remove('about-open'); syncBack(); }
   function openDrawer() { body.classList.add('drawer-open'); syncBack(); }
   function closeDrawer() { body.classList.remove('drawer-open'); syncBack(); }
 
@@ -554,7 +555,7 @@
     refreshMarks();
     render();
     fetchInfo(lang, w, (d) => { if (tok === S.token) { Object.assign(S.info, d); render(); } })
-      .catch((e) => { if (tok === S.token) { Object.assign(S.info, { failed: ['ex'], done: ['tr', 'dic', 'ex'], err: String(e.message || e).slice(0, 160) }); render(); } });
+      .catch((e) => { if (tok === S.token) { Object.assign(S.info, { failed: ['tr', 'ex'], done: ['tr', 'dic', 'ex'], err: String(e.message || e).slice(0, 160) }); render(); } });
     if (state.auto_play) speak(lang, w.w, false);
   }
 
@@ -571,9 +572,15 @@
       $('btnReveal').style.display = '';
     } else {
       $('btnReveal').style.display = 'none';
-      const more = d.more || '';
+      let more = d.more || '';
       if (d.mean) { mean.textContent = d.mean; mean.style.color = ''; }
-      else { mean.textContent = 'Chưa có nghĩa trong dữ liệu.'; mean.style.color = 'var(--muted)'; }
+      else if (failed.includes('tr')) {
+        if (d.def_en) { mean.textContent = '(Tiếng Anh) ' + d.def_en; mean.style.color = ''; }
+        else {
+          mean.textContent = 'Không tải được nghĩa.'; mean.style.color = 'var(--red)';
+          more = 'Lý do: ' + (d.err || 'không kết nối được dịch vụ dịch') + '   —   Kiểm tra mạng rồi chọn lại từ.';
+        }
+      } else { mean.textContent = 'Đang tra nghĩa…'; mean.style.color = 'var(--muted)'; }
       $('more').textContent = more;
       $('defEn').textContent = d.mean ? (d.def_en || '') : '';
     }
@@ -581,7 +588,7 @@
     if (d.ex) { ex.textContent = d.ex; ex.style.color = ''; $('btnExPlay').style.display = ''; }
     else {
       $('btnExPlay').style.display = 'none';
-      if (failed.includes('ex')) { ex.textContent = 'Không tải được ví dụ (cần kết nối mạng).'; ex.style.color = 'var(--red)'; }
+      if (failed.includes('ex')) { ex.textContent = 'Không tải được ví dụ (mất kết nối).'; ex.style.color = 'var(--red)'; }
       else if (done.includes('ex')) { ex.textContent = 'Chưa tìm thấy ngữ cảnh cho từ này.'; ex.style.color = 'var(--muted)'; }
       else { ex.textContent = 'Đang tìm ngữ cảnh…'; ex.style.color = 'var(--muted)'; }
     }
@@ -628,8 +635,6 @@
 
   /* ---------------- sự kiện ---------------- */
   $('btnMenu').addEventListener('click', openDrawer);
-  $('btnAbout').addEventListener('click', openAbout);
-  $('btnAboutBack').addEventListener('click', closeAbout);
   $('scrim').addEventListener('click', () => { closeDrawer(); closeSheet(); });
   $('btnBack').addEventListener('click', closeDetail);
   $('topics').addEventListener('click', (e) => {
@@ -697,7 +702,6 @@
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
     if (body.classList.contains('sheet-open')) { closeSheet(); return true; }
-    if (body.classList.contains('about-open')) { closeAbout(); return true; }
     if (body.classList.contains('drawer-open')) { closeDrawer(); return true; }
     if (!isWide() && body.classList.contains('detail-open')) { closeDetail(); return true; }
     return false;

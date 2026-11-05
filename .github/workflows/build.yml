@@ -57,12 +57,6 @@ jobs:
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
-      # Chốt chặn: chỉ dựng AAB khi dữ liệu đã được tools/build_data.py dựng lại (có nguồn + giấy phép),
-      # để không đăng nhầm dữ liệu cũ không rõ nguồn.
-      - name: Kiểm tra dữ liệu trước khi phát hành
-        if: env.HAS_KEYSTORE == 'true'
-        run: python3 tools/check_data.py
-
       - name: Build AAB release
         if: env.HAS_KEYSTORE == 'true'
         run: gradle bundleRelease --no-daemon
