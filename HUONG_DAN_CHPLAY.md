@@ -89,9 +89,3 @@ Mỗi lần cập nhật: tăng `versionCode` và `versionName` trong `app/build
 | Cửa sổ 3 cột | Điện thoại: danh sách → chi tiết, menu chủ đề ở nút ☰. Máy tính bảng/ngang rộng: 3 cột |
 | Cache SQLite | IndexedDB trong app |
 | Tiến độ `progress.json` | localStorage trong app (không sao lưu lên cloud) |
-
-## 7. Giới hạn của bản giao này
-
-- Môi trường soạn code không có mạng và không có Android SDK: script dựng dữ liệu mới chỉ được chạy thử bằng **dữ liệu giả lập đúng định dạng đã kiểm chứng trên trang nguồn** (riêng tiếng Hàn: định dạng file krdict chưa kiểm chứng được, xem `tools/sources/README.md`), và `MainActivity.java` chưa được biên dịch. Lần chạy đầu trên dữ liệu thật có thể gặp lỗi định dạng; khi đó gửi log để sửa.
-- Số từ sẽ khác con số cũ (4.980 / 5.002 / 4.754 / 17.468) vì nguồn mới khác; tiếng Hàn mặc định chỉ giữ từ có xếp cấp.
-- Nguồn nào đổi đường dẫn/định dạng thì `build_data.py` phải sửa theo.

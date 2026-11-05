@@ -11,11 +11,11 @@ val keystoreProps = Properties().apply {
 }
 
 android {
-    namespace = "com.vocabluxe.app"
+    namespace = "com.fws.vocabluxe"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.vocabluxe.app"   // ĐỔI thành ID riêng của bạn trước khi đăng; không đổi được sau khi đã đăng
+        applicationId = "com.fws.vocabluxe"   // ĐỔI thành ID riêng của bạn trước khi đăng; không đổi được sau khi đã đăng
         minSdk = 26
         targetSdk = 36                         // Google Play yêu cầu API 36 từ 31/08/2026
         versionCode = 1
