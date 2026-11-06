@@ -1,8 +1,9 @@
-package com.vocabluxe.app;
+package com.fws.vocabluxe;
 
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -44,8 +45,8 @@ import java.util.concurrent.Executors;
 
 /**
  * VocabLuxe: toàn bộ giao diện (sáng/tối) chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
- * Cầu nối AndroidBridge làm 3 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 4 dịch vụ tra cứu,
- * và đồng bộ màu thanh hệ thống với giao diện sáng/tối.
+ * Cầu nối AndroidBridge làm 4 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 4 dịch vụ tra cứu,
+ * đồng bộ màu thanh hệ thống với giao diện sáng/tối, và mở trang Chính sách quyền riêng tư.
  */
 public class MainActivity extends ComponentActivity {
 
@@ -55,6 +56,8 @@ public class MainActivity extends ComponentActivity {
     private static final int BG_LIGHT = 0xFFF4F5FB;
     private static final int BG_DARK = 0xFF0E1018;
     private static final int MAX_BODY = 2 * 1024 * 1024;
+    /** Trang Chính sách quyền riêng tư (GitHub Pages, thư mục docs/privacy-policy). ĐỔI nếu tên tài khoản / kho mã khác. */
+    private static final String PRIVACY_URL = "https://lequang0996.github.io/VocabLuxeAndroid/privacy-policy/";
     private static final String UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) "
             + "Chrome/124.0 Mobile Safari/537.36 VocabLuxe/1.0";
     /** Chỉ cho phép gọi các dịch vụ tra cứu này. */
@@ -257,6 +260,18 @@ public class MainActivity extends ComponentActivity {
         public void speak(final String langTag, final String text, final boolean slow) {
             if (text == null || text.length() > 600 || langTag == null) return;
             runOnUiThread(() -> doSpeak(langTag, text, slow));
+        }
+
+        /** Mở trang Chính sách quyền riêng tư bằng trình duyệt (chỉ đúng địa chỉ cố định ở trên). */
+        @JavascriptInterface
+        public void openPrivacyPolicy() {
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)));
+                } catch (Exception e) {
+                    jsError("__ttsError", "Không mở được trình duyệt.");
+                }
+            });
         }
 
         @JavascriptInterface

@@ -1,5 +1,5 @@
 'use strict';
-/* VocabLuxe (Android) – giao diện sáng/tối; bản chuyển từ tool PC (engine.py + app.py). Toàn bộ dữ liệu nằm trong app; chỉ nghĩa tiếng Anh/Nhật
+/* VocabLuxe (Android) – giao diện sáng/tối; bản chuyển từ tool PC (engine.py + app.py). Toàn bộ dữ liệu nằm trong app; chỉ nghĩa tiếng Anh
    và câu ví dụ còn thiếu mới tra online (có cache). Phát âm dùng TextToSpeech của máy, không tạo file. */
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -13,12 +13,8 @@
           subLabel: 'LOẠI TỪ', levels: ['A1', 'A2', 'B1', 'B2', 'C1'] },
     zh: { code: 'zh', name: 'Tiếng Trung', file: 'zh.json', tts: 'zh-CN', gtx: 'zh-CN', tatoeba: 'cmn', htmlLang: 'zh-CN',
           subLabel: 'PINYIN', levels: ['HSK1', 'HSK2', 'HSK3', 'HSK4', 'HSK5', 'HSK6'] },
-    ja: { code: 'ja', name: 'Tiếng Nhật', file: 'ja.json', tts: 'ja-JP', gtx: 'ja', tatoeba: 'jpn', htmlLang: 'ja',
-          subLabel: 'CÁCH ĐỌC', levels: ['N5', 'N4', 'N3', 'N2', 'N1'] },
-    ko: { code: 'ko', name: 'Tiếng Hàn', file: 'ko.json', tts: 'ko-KR', gtx: 'ko', tatoeba: 'kor', htmlLang: 'ko',
-          subLabel: 'ROMAJA', levels: [] },
   };
-  const ORDER = ['en', 'zh', 'ja', 'ko'];
+  const ORDER = ['en', 'zh'];
   const POS_NAMES = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition', pron: 'pronoun',
     conj: 'conjunction', exclam: 'interjection', det: 'determiner', modal: 'verb', auxiliary: 'verb', number: 'noun', noun: 'noun' };
   const POS_VI = { noun: 'danh từ', verb: 'động từ', adjective: 'tính từ', adverb: 'trạng từ', preposition: 'giới từ',
@@ -92,6 +88,7 @@
   }
 
   const progRaw = ls.get('vl_progress', {});
+  if (progRaw.ja || progRaw.ko) { delete progRaw.ja; delete progRaw.ko; ls.set('vl_progress', progRaw); } // bản cũ có tiếng Nhật/Hàn
   const prog = {};
   const progOf = (code) => {
     if (!prog[code]) {
@@ -215,9 +212,6 @@
     if (cjk) {
       const core = base;
       if (core !== word && core) stems.push(core);
-      if (core.length >= 2 && 'るうくぐすつぬぶむい'.includes(core[core.length - 1]) && /[\u4e00-\u9fff]/.test(core.slice(0, -1))) stems.push(core.slice(0, -1));
-      if (core.endsWith('하다') && core.length >= 4) stems.push(core.slice(0, -2));
-      else if (core.endsWith('다') && core.length >= 3) stems.push(core.slice(0, -1));
     }
     for (const needVi of [true, false]) {
       let results;
@@ -269,18 +263,8 @@
     return {};
   }, false);
 
-  const localPhon = (code, w) => (code === 'ja' ? (w.py || '') + '   ·   ' + (w.ro || '') : (w.py || ''));
-  const localMore = (code, w) => {
-    if (code === 'zh' && w.hv) return 'Âm Hán Việt: ' + w.hv;
-    if (code === 'ja' && w.hv) return 'Hán Việt: ' + w.hv;
-    if (code === 'ko') {
-      const bits = [];
-      if (w.hv) bits.push('Hán tự: ' + w.hv);
-      if (w.lesson) bits.push('Bài: ' + w.lesson);
-      return bits.join('   ·   ');
-    }
-    return '';
-  };
+  const localPhon = (code, w) => w.py || '';
+  const localMore = (code, w) => (code === 'zh' && w.hv ? 'Âm Hán Việt: ' + w.hv : '');
 
   async function fetchInfo(lang, w, onPart) {
     const code = lang.code;
@@ -380,8 +364,8 @@
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         for (const w of data.words) {
-          for (const k of ['w', 'py', 'ro', 'hv', 'mean', 'ex', 'ex_py', 'ex_vi', 'pos', 'note', 'lesson']) if (typeof w[k] === 'string') w[k] = w[k].normalize('NFC');
-          w._h = fold([w.w, w.py, w.ro, w.mean, w.pos, w.hv, w.lesson].filter(Boolean).join(' '));
+          for (const k of ['w', 'py', 'hv', 'mean', 'ex', 'ex_py', 'ex_vi', 'pos', 'note']) if (typeof w[k] === 'string') w[k] = w[k].normalize('NFC');
+          w._h = fold([w.w, w.py, w.mean, w.pos, w.hv].filter(Boolean).join(' '));
         }
         dataCache[code] = data;
       } catch (e) { say('Không mở được dữ liệu ' + cfg.name + ': ' + e.message, 8000); return; }
@@ -493,12 +477,14 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function openDetail() { body.classList.add('detail-open'); syncBack(); }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
   function openDrawer() { body.classList.add('drawer-open'); syncBack(); }
+  function openLegal() { closeDrawer(); body.classList.add('legal-open'); $('legalScroll').scrollTop = 0; syncBack(); }
+  function closeLegal() { body.classList.remove('legal-open'); syncBack(); }
   function closeDrawer() { body.classList.remove('drawer-open'); syncBack(); }
 
   /* ---- Bảng chọn cấp độ (thay cho dropdown mặc định của hệ thống) ---- */
@@ -637,6 +623,12 @@
   $('btnMenu').addEventListener('click', openDrawer);
   $('scrim').addEventListener('click', () => { closeDrawer(); closeSheet(); });
   $('btnBack').addEventListener('click', closeDetail);
+  $('btnLegal').addEventListener('click', openLegal);
+  $('btnLegalBack').addEventListener('click', closeLegal);
+  $('btnPrivacy').addEventListener('click', () => {
+    try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (e) { /* bỏ qua */ }
+    say('Không mở được trình duyệt.', 5000);
+  });
   $('topics').addEventListener('click', (e) => {
     const b = e.target.closest('.trow');
     if (!b) return;
@@ -701,6 +693,7 @@
 
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
+    if (body.classList.contains('legal-open')) { closeLegal(); return true; }
     if (body.classList.contains('sheet-open')) { closeSheet(); return true; }
     if (body.classList.contains('drawer-open')) { closeDrawer(); return true; }
     if (!isWide() && body.classList.contains('detail-open')) { closeDetail(); return true; }

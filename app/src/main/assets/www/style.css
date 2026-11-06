@@ -14,7 +14,7 @@
   --shadow-play:0 6px 16px rgba(79,70,229,.35);
   --scrim:rgba(14,16,34,.5);
   --toast-bg:#1D2135; --toast-text:#F2F3FA;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans CJK SC","Noto Sans CJK JP","Noto Sans CJK KR",sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans CJK SC",sans-serif;
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
@@ -77,6 +77,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .trow.on .tsym{background:var(--primary);color:var(--on-primary)}
 .trow.on .tn{color:var(--primary-text)}
 
+/* nút mở màn hình giấy phép (cuối menu) */
+.legal-link{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-top:6px;padding:0 14px;border-radius:14px;border-top:1px solid var(--line);
+  border-radius:0 0 14px 14px;font-size:13.5px;font-weight:600;color:var(--muted);flex:none}
+.legal-link:active{background:var(--surface-2)}
+
 /* ---------- danh sách ---------- */
 #listPane{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
 .lhead{padding:10px 14px 6px;display:flex;flex-direction:column;gap:10px}
@@ -87,7 +92,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .bar i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#6D66F5,var(--primary));transition:width .35s}
 :root[data-theme="dark"] .bar i{background:linear-gradient(90deg,#7C83FF,#B7BAFF)}
 
-.langs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.langs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .langs button{height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted);padding:0 2px;white-space:nowrap}
 .langs button.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary);box-shadow:0 4px 12px rgba(79,70,229,.25)}
 
@@ -171,6 +176,21 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .nbtn.faved{background:var(--amber-soft);color:var(--amber-text)}
 .nbtn.faved .ic{fill:var(--amber);stroke:var(--amber)}
 
+/* ---------- màn hình giấy phép ---------- */
+#legal{position:absolute;inset:0;background:var(--bg);z-index:45;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .24s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.legal-open #legal{transform:none;visibility:visible}
+.legal-title{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.legal-scroll{flex:1;overflow-y:auto;padding:6px 14px 24px;overscroll-behavior:contain}
+.lpanel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:15px 16px 16px;margin-bottom:12px}
+.lpanel h2{font-size:15px;font-weight:700;margin:0 0 8px;color:var(--primary-text)}
+.lpanel p,.lpanel li{font-size:13.5px;line-height:1.55;color:var(--text)}
+.lpanel p{margin:0 0 8px}
+.lpanel ul{margin:0;padding-left:18px}
+.lpanel li{margin-bottom:6px}
+.lpanel b{font-weight:600}
+.lpanel .tonal{margin-top:4px}
+
 /* công tắc */
 .sw{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;min-height:40px}
 .sw input{position:absolute;opacity:0;pointer-events:none}
@@ -209,6 +229,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 
 /* ---------- máy tính bảng / màn hình rộng ---------- */
 @media (min-width:900px){
+  .legal-scroll{max-width:720px;width:100%;margin:0 auto}
   #app{display:grid;grid-template-columns:300px 410px 1fr}
   #scrim{display:none}
   #drawer{position:relative;transform:none;visibility:visible;width:auto;z-index:1;border-radius:0;box-shadow:none;border-right:1px solid var(--line)}

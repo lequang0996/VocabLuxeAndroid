@@ -2,4 +2,4 @@
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
--keep class com.vocabluxe.app.MainActivity$Bridge { *; }
+-keep class com.fws.vocabluxe.MainActivity$Bridge { *; }

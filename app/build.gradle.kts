@@ -4,7 +4,7 @@ plugins {
     id("com.android.application")
 }
 
-// Thông tin ký bản phát hành: tạo file keystore.properties cạnh settings.gradle.kts (xem HUONG_DAN_CHPLAY.md)
+// Thông tin ký bản phát hành: tạo file keystore.properties cạnh settings.gradle.kts
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }

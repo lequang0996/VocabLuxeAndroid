@@ -1,11 +1,12 @@
 # VocabLuxe (Android)
 
-Học từ vựng Anh · Trung · Nhật · Hàn theo chủ đề: nghe phát âm, ôn tập, luyện tập.
+Học từ vựng Anh · Trung theo chủ đề: nghe phát âm, ôn tập, luyện tập.
 
 - Giao diện: HTML/JS trong `app/src/main/assets/www`, chạy trong WebView
-- Vỏ Android: `app/src/main/java/com/vocabluxe/app/MainActivity.java`
+- Vỏ Android: `app/src/main/java/com/fws/vocabluxe/MainActivity.java`
 - Dữ liệu từ vựng: `app/src/main/assets/www/data/*.json`
-- Hướng dẫn build và đăng CH Play: xem `HUONG_DAN_CHPLAY.md`
+- Chính sách quyền riêng tư (đăng CH Play): `docs/privacy-policy/` (xem `docs/privacy-policy/README.md`)
+- Màn hình Giấy phép & Quyền riêng tư trong ứng dụng: mở menu chủ đề → nút cuối menu
 
 ## Build
 
