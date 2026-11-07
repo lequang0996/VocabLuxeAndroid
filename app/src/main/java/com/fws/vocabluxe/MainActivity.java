@@ -322,7 +322,7 @@ public class MainActivity extends ComponentActivity {
                         && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
                     updateAsked = true; // chỉ hỏi một lần mỗi lần mở app
                     try {
-                        updateManager.startUpdateFlow(info, updateLauncher, AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build());
+                        updateManager.startUpdateFlowForResult(info, updateLauncher, AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build());
                     } catch (Exception ignored) { /* bỏ qua */ }
                 }
             });
