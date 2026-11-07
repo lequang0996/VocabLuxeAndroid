@@ -15,10 +15,10 @@ Tệp này là **bản mô tả cửa hàng** của ứng dụng, viết theo ch
 VocabLuxe: Từ vựng Anh Trung
 ```
 
-**Mô tả ngắn** (76 ký tự)
+**Mô tả ngắn** (68 ký tự)
 
 ```
-Học từ vựng tiếng Anh và tiếng Trung (HSK) theo chủ đề, có phát âm và ví dụ.
+Học từ vựng tiếng Anh và tiếng Trung theo chủ đề, có phát âm và ví dụ.
 ```
 
 **Mô tả đầy đủ**
@@ -26,11 +26,11 @@ Học từ vựng tiếng Anh và tiếng Trung (HSK) theo chủ đề, có phá
 ```
 VocabLuxe giúp bạn học từ vựng tiếng Anh và tiếng Trung theo chủ đề, với phát âm, ví dụ thực tế và theo dõi tiến độ ngay trên điện thoại.
 
-TỪ VỰNG THEO CHỦ ĐỀ VÀ CẤP ĐỘ
-• Gần 5.000 từ tiếng Anh theo cấp độ A1–C1 (CEFR).
-• Gần 5.000 từ tiếng Trung theo cấp độ HSK 1–6, kèm pinyin.
+TỪ VỰNG THEO CHỦ ĐỀ
+• Gần 5.000 từ tiếng Anh và gần 5.000 từ tiếng Trung (kèm pinyin).
 • Hơn 20 chủ đề: gia đình, ăn uống, du lịch, công việc, công nghệ, sức khỏe, học tập…
-• Tìm kiếm nhanh theo từ, nghĩa hoặc phiên âm; lọc theo cấp độ.
+• Từ thông dụng, dùng nhiều được xếp lên đầu danh sách.
+• Tìm kiếm nhanh theo từ, nghĩa hoặc phiên âm; lọc theo chủ đề.
 
 NGHE PHÁT ÂM NGAY
 • Chạm vào một từ là nghe phát âm ngay (có thể tắt trong phần cài đặt).
@@ -58,7 +58,8 @@ LƯU Ý
 • Danh sách từ dùng được khi không có mạng; nghĩa và ví dụ của một số từ cần kết nối Internet.
 • Một phần nghĩa và ví dụ do máy dịch tự động nên có thể chưa hoàn hảo.
 • Ứng dụng có hiển thị quảng cáo.
-• VocabLuxe là ứng dụng độc lập, không liên kết với hay được bảo trợ bởi Oxford University Press, Chinese Testing International hoặc Google. Tên và nhãn hiệu thuộc về chủ sở hữu tương ứng.
+• Dữ liệu: Wiktionary / WordNet (tiếng Anh) và CC-CEDICT (tiếng Trung), theo giấy phép CC BY-SA 4.0.
+• VocabLuxe là ứng dụng độc lập, không liên kết với hay được bảo trợ bởi Google. Tên và nhãn hiệu thuộc về chủ sở hữu tương ứng.
 ```
 
 **Nội dung "Có gì mới"** (bản đầu tiên, ≤ 500 ký tự)
@@ -77,10 +78,10 @@ Phiên bản đầu tiên: từ vựng tiếng Anh và tiếng Trung theo chủ 
 VocabLuxe: English & Chinese
 ```
 
-**Short description** (77 characters)
+**Short description** (71 characters)
 
 ```
-Learn English and Chinese (HSK) vocabulary by topic, with audio and examples.
+Learn English and Chinese vocabulary by topic, with audio and examples.
 ```
 
 **Full description**
@@ -88,11 +89,11 @@ Learn English and Chinese (HSK) vocabulary by topic, with audio and examples.
 ```
 VocabLuxe helps you learn English and Chinese vocabulary by topic, with pronunciation, real example sentences and progress tracking on your phone.
 
-VOCABULARY BY TOPIC AND LEVEL
-• Nearly 5,000 English words at CEFR levels A1–C1.
-• Nearly 5,000 Chinese words at HSK levels 1–6, with pinyin.
+VOCABULARY BY TOPIC
+• Nearly 5,000 English words and nearly 5,000 Chinese words (with pinyin).
 • More than 20 topics: family, food, travel, work, technology, health, study and more.
-• Quick search by word, meaning or pronunciation; filter by level.
+• Common, frequently used words come first in the list.
+• Quick search by word, meaning or pronunciation; filter by topic.
 
 HEAR IT INSTANTLY
 • Tap a word and its pronunciation plays right away (you can turn this off).
@@ -120,7 +121,8 @@ GOOD TO KNOW
 • The word lists work offline; meanings and examples for some words need an Internet connection.
 • Some meanings and examples are machine-translated and may not be perfect.
 • The app contains ads.
-• VocabLuxe is an independent app, not affiliated with or endorsed by Oxford University Press, Chinese Testing International or Google. All names and trademarks belong to their respective owners.
+• Data: Wiktionary / WordNet (English) and CC-CEDICT (Chinese), under CC BY-SA 4.0.
+• VocabLuxe is an independent app, not affiliated with or endorsed by Google. All names and trademarks belong to their respective owners.
 ```
 
 **What's new** (first release, ≤ 500 characters)
@@ -134,7 +136,7 @@ First release: English and Chinese vocabulary by topic, instant pronunciation, t
 ## Ghi chú khi đăng
 
 - **"Ứng dụng có hiển thị quảng cáo" / "The app contains ads"**: chỉ giữ dòng này khi bản đăng thực sự có AdMob; khi đó bật **Chứa quảng cáo** trong Play Console → *Nội dung ứng dụng*. Nếu chưa tích hợp AdMob, xóa dòng này.
-- Ảnh chụp màn hình lấy từ thư mục `store/` (xem `store/`); biểu tượng 512×512 và ảnh bìa 1024×500 cũng ở đó.
+- Ảnh chụp màn hình lấy từ thư mục `store/` (7 ảnh); biểu tượng 512×512 và ảnh bìa 1024×500 cũng ở đó.
 - Điền *An toàn dữ liệu* khớp với chính sách quyền riêng tư (có AdMob: mã quảng cáo, địa chỉ IP, thông tin thiết bị; từ đang tra gửi tới các dịch vụ dịch/từ điển).
 
 ## Build (dành cho nhà phát triển)

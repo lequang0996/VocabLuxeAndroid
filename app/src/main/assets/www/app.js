@@ -5,8 +5,7 @@
   const $ = (id) => document.getElementById(id);
   const ANDROID = window.AndroidBridge || null;
   const ROW_H = 66;
-  const ALL_LEVELS = '__all__';
-  const ic = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
+    const ic = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 
   const LANGS = {
     en: { code: 'en', file: 'en.json', tts: 'en-US', gtx: 'en', tatoeba: 'eng', htmlLang: 'en',
@@ -95,8 +94,11 @@
     document.documentElement.setAttribute('data-theme', t);
     const mc = document.querySelector('meta[name=theme-color]');
     if (mc) mc.setAttribute('content', t === 'dark' ? '#0E1018' : '#F4F5FB');
-    const b = document.getElementById('btnTheme');
-    if (b) b.setAttribute('aria-label', L(t === 'dark' ? 'toLight' : 'toDark'));
+    const mi = document.getElementById('miTheme'); // mục "sáng / tối" trong menu thả xuống
+    if (mi) {
+      mi.querySelector('span').textContent = L(t === 'dark' ? 'toLight' : 'toDark');
+      mi.querySelector('use').setAttribute('href', t === 'dark' ? '#i-sun' : '#i-moon');
+    }
     if (persist) { state.theme = t; saveState(); }
     try { if (ANDROID && ANDROID.setTheme) ANDROID.setTheme(t === 'dark'); } catch (e) { /* bỏ qua */ }
   }
@@ -365,7 +367,7 @@
   /*  Trạng thái giao diện                                               */
   /* ------------------------------------------------------------------ */
   const S = { lang: LANGS.en, words: [], view: [], levels: [], cur: null, curIndex: -1, info: {}, token: 0, topic: 'all',
-    reveal: true, practice: false, filter: 'all', level: ALL_LEVELS, loading: 0 };
+    reveal: true, practice: false, filter: 'all', loading: 0 };
   let TOPICS = [], TOPIC_MAP = {};
   const dataCache = {};
   const isWide = () => window.matchMedia('(min-width: 900px)').matches;
@@ -413,28 +415,42 @@
     const data = dataCache[code];
     S.lang = cfg;
     warmTts(cfg);
-    S.words = data.words;
+    S.words = data.sorted || (data.sorted = sortWords(data, cfg));
     S.levels = data.levels && data.levels.length ? data.levels : cfg.levels;
     state.lang = code; saveState();
     $('detail').dataset.lang = code;
     $('word').lang = cfg.htmlLang; $('ex').lang = cfg.htmlLang;
     for (const b of $('langs').children) b.classList.toggle('on', b.dataset.code === code);
-    S.topic = 'all'; S.filter = 'all'; S.level = ALL_LEVELS;
+    S.topic = 'all'; S.filter = 'all';
     for (const b of $('seg').children) b.classList.toggle('on', b.dataset.v === 'all');
     $('search').value = '';
     $('btnClear').hidden = true;
-    updateLevelBtn();
     rebuildTopics();
     applyFilters();
     updateStats();
     $('toast').classList.remove('show');
   }
 
+  /* Thứ tự chủ đề: thông dụng trước. Từ được xếp theo mức dùng nhiều (cấp độ dữ liệu từ thấp đến cao), rồi theo chủ đề thông dụng. */
+  const TOPIC_PRIORITY = ['family', 'food', 'home', 'time', 'number', 'body', 'color', 'clothes', 'travel', 'place', 'study', 'work',
+    'feeling', 'nature', 'money', 'comm', 'tech', 'leisure', 'society', 'science', 'action', 'quality', 'grammar', 'idiom', 'general'];
+  const topicRank = (id) => { const i = TOPIC_PRIORITY.indexOf(id); return i < 0 ? 99 : i; };
+  function sortWords(data, cfg) {
+    const lv = data.levels && data.levels.length ? data.levels : cfg.levels;
+    const lr = (w) => { const i = lv.indexOf(w.lvl); return i < 0 ? 99 : i; };
+    return data.words.map((w, i) => [w, i])
+      .sort((x, y) => lr(x[0]) - lr(y[0]) || topicRank(x[0].topic) - topicRank(y[0].topic) || x[1] - y[1])
+      .map((x) => x[0]);
+  }
+
   function rebuildTopics() {
     const counts = {};
     for (const w of S.words) counts[w.topic] = (counts[w.topic] || 0) + 1;
     const rows = [{ id: 'all', name: L('allTopics'), sym: null, n: S.words.length }];
-    for (const tp of TOPICS) if (counts[tp.id]) rows.push({ id: tp.id, name: topicName(tp.id), sym: tp.sym, n: counts[tp.id] });
+    const symOf = {};
+    for (const tp of TOPICS) symOf[tp.id] = tp.sym;
+    Object.keys(counts).sort((x, y) => topicRank(x) - topicRank(y)).forEach((id) => rows.push({ id, name: topicName(id), sym: symOf[id], n: counts[id] }));
+    S.topicRows = rows;
     const box = $('topics');
     box.innerHTML = rows.map((r) => '<button class="trow" data-t="' + esc(r.id) + '"><span class="tsym">' + (r.sym ? esc(r.sym) + '\uFE0E' : ic('grid')) + '</span><span class="tname">' +
       esc(r.name) + '</span><span class="tn">' + r.n + '</span></button>').join('');
@@ -447,11 +463,9 @@
   function applyFilters() {
     const code = S.lang.code, p = progOf(code);
     const q = fold($('search').value.trim());
-    const lv = S.level || ALL_LEVELS;
     const res = [];
     for (const w of S.words) {
       if (S.topic !== 'all' && w.topic !== S.topic) continue;
-      if (lv !== ALL_LEVELS && w.lvl !== lv) continue;
       const done = p.learned.has(w.id);
       if (S.filter === 'todo' && done) continue;
       if (S.filter === 'done' && !done) continue;
@@ -460,6 +474,7 @@
       res.push(w);
     }
     S.practice = false;
+    $('btnTopic').classList.toggle('active', S.topic !== 'all');
     highlightTopic(true);
     showList(res, S.topic === 'all' ? L('allTopics') : topicName(S.topic), L('wordsN', { n: fmtN(res.length) }));
   }
@@ -481,7 +496,7 @@
     const sub = S.lang.code === 'en' ? (w.pos || '') : (w.py || '');
     return '<div class="row' + (i === S.curIndex ? ' sel' : '') + (done ? ' done' : '') + '" data-i="' + i + '" style="top:' + (i * ROW_H) + 'px"><div class="card">' +
       '<div class="rmain"><div class="rw" lang="' + S.lang.htmlLang + '">' + esc(w.w) + '</div><div class="rs">' + esc(sub) + '</div></div>' +
-      '<div class="rtags">' + (fav ? ic('star', 'rf') : '') + '<span class="rl">' + esc(w.lvl) + '</span>' + (done ? ic('checkc', 'rc') : '') + '</div></div></div>';
+      '<div class="rtags">' + (fav ? ic('star', 'rf') : '') + '<span class="rl">' + esc(topicName(TOPIC_MAP[w.topic] ? w.topic : 'general')) + '</span>' + (done ? ic('checkc', 'rc') : '') + '</div></div></div>';
   }
   function renderRows() {
     const list = $('list'), rows = $('rows');
@@ -516,31 +531,32 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('menu-open') || body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function openDetail() { body.classList.add('detail-open'); syncBack(); }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
+  function openMenu() {
+    const r = $('btnMore').getBoundingClientRect(), m = $('menuPop');
+    m.style.top = (r.bottom + 8) + 'px'; m.style.left = 'auto';
+    m.style.right = Math.max(10, document.documentElement.clientWidth - r.right) + 'px';
+    m.hidden = false; body.classList.add('menu-open'); $('btnMore').setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => m.classList.add('show')); syncBack();
+  }
+  function closeMenu() {
+    const m = $('menuPop');
+    m.classList.remove('show'); m.hidden = true; body.classList.remove('menu-open'); $('btnMore').setAttribute('aria-expanded', 'false'); syncBack();
+  }
   function openDrawer() { body.classList.add('drawer-open'); syncBack(); }
-  function openLegal() { closeDrawer(); renderLegal(); body.classList.add('legal-open'); $('legalScroll').scrollTop = 0; syncBack(); }
+  function openLegal() { closeMenu(); closeDrawer(); renderLegal(); body.classList.add('legal-open'); $('legalScroll').scrollTop = 0; syncBack(); }
   function closeLegal() { body.classList.remove('legal-open'); syncBack(); }
   function closeDrawer() { body.classList.remove('drawer-open'); syncBack(); }
 
   /* ---- Bảng chọn cấp độ (thay cho dropdown mặc định của hệ thống) ---- */
-  function updateLevelBtn() {
-    const b = $('btnLevel');
-    b.hidden = !S.levels.length;
-    $('levelText').textContent = S.level === ALL_LEVELS ? L('allLevels') : S.level;
-    b.classList.toggle('active', S.level !== ALL_LEVELS);
-  }
-  function openSheet() {
-    if (!S.levels.length) return;
-    const cnt = {};
-    for (const w of S.words) cnt[w.lvl] = (cnt[w.lvl] || 0) + 1;
-    const opts = [[ALL_LEVELS, S.words.length]].concat(S.levels.map((l) => [l, cnt[l] || 0]));
-    $('sheetTitle').textContent = L('chooseLevel');
-    $('sheetList').innerHTML = opts.map(([l, n]) => '<button class="opt' + (l === S.level ? ' on' : '') + '" data-v="' + esc(l) + '">' +
-      '<span>' + esc(l === ALL_LEVELS ? L('allLevels') : l) + '</span><span class="cnt">' + L('wordsN', { n: fmtN(n) }) + '</span>' + ic('check', 'oc') + '</button>').join('');
+  function openSheet() { // bảng chọn chủ đề (thay cho chọn cấp độ)
+    $('sheetTitle').textContent = L('topics');
+    $('sheetList').innerHTML = (S.topicRows || []).map((r) => '<button class="opt' + (r.id === S.topic ? ' on' : '') + '" data-t="' + esc(r.id) + '">' +
+      '<span class="tsym">' + (r.sym ? esc(r.sym) + '\uFE0E' : ic('grid')) + '</span><span class="oname">' + esc(r.name) + '</span><span class="cnt">' + r.n + '</span>' + ic('check', 'oc') + '</button>').join('');
     body.classList.add('sheet-open'); syncBack();
   }
   function closeSheet() { body.classList.remove('sheet-open'); syncBack(); }
@@ -561,7 +577,6 @@
     applyI18n();
     applyTheme(currentTheme(), false);
     buildLangButtons();
-    updateLevelBtn();
     rebuildTopics();
     applyFilters();
     updateStats();
@@ -597,7 +612,7 @@
     $('btnGuidePrev').style.visibility = gStep ? 'visible' : 'hidden';
     $('gnextText').textContent = L(gStep === GUIDE_ICONS.length - 1 ? 'guideDone' : 'guideNext');
   }
-  function openGuide() { closeDrawer(); gStep = 0; renderGuide(); body.classList.add('guide-open'); syncBack(); }
+  function openGuide() { closeMenu(); closeDrawer(); gStep = 0; renderGuide(); body.classList.add('guide-open'); syncBack(); }
   function closeGuide() { body.classList.remove('guide-open'); if (!state.guided) { state.guided = true; saveState(); } syncBack(); }
   window.matchMedia('(min-width: 900px)').addEventListener('change', syncBack);
 
@@ -617,7 +632,7 @@
 
   function showEmpty() {
     S.cur = null; S.token++;
-    for (const id of ['chipTopic', 'chipLvl', 'chipPos', 'word', 'phon', 'mean', 'more', 'defEn', 'ex', 'exPhon', 'exVi']) $(id).textContent = '';
+    for (const id of ['chipTopic', 'chipPos', 'word', 'phon', 'mean', 'more', 'defEn', 'ex', 'exPhon', 'exVi']) $(id).textContent = '';
     $('btnReveal').style.display = 'none'; $('btnExPlay').style.display = 'none';
     $('btnLearn').textContent = ''; $('btnFav').textContent = '';
   }
@@ -628,7 +643,6 @@
     S.info = {};
     S.reveal = !(state.review || S.practice);
     $('chipTopic').textContent = topicName(TOPIC_MAP[w.topic] ? w.topic : 'general');
-    $('chipLvl').textContent = w.lvl;
     let extra = w.pos || '';
     if (w.note) extra = (extra + '  (' + w.note + ')').trim();
     $('chipPos').textContent = extra;
@@ -716,17 +730,25 @@
 
   /* ---------------- sự kiện ---------------- */
   $('btnMenu').addEventListener('click', openDrawer);
+  $('btnMore').addEventListener('click', () => (body.classList.contains('menu-open') ? closeMenu() : openMenu()));
+  $('btnLegal').addEventListener('click', openLegal);
   $('scrim').addEventListener('click', () => { closeDrawer(); closeSheet(); });
   $('btnBack').addEventListener('click', closeDetail);
-  $('btnLegal').addEventListener('click', openLegal);
   $('btnLegalBack').addEventListener('click', closeLegal);
   $('legalBody').addEventListener('click', (e) => {
     if (!e.target.closest('#btnPrivacy')) return;
     try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (err) { /* bỏ qua */ }
     say(L('ttsBrowser'), 5000);
   });
-  $('btnLang').addEventListener('click', openLangSheet);
-  $('btnGuide').addEventListener('click', openGuide);
+  $('menuPop').addEventListener('click', (e) => {
+    const b = e.target.closest('.mitem');
+    if (!b) return;
+    closeMenu();
+    if (b.id === 'miLang') openLangSheet();
+    else if (b.id === 'miTheme') applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true);
+    else if (b.id === 'miGuide') openGuide();
+  });
+  document.addEventListener('pointerdown', (e) => { if (body.classList.contains('menu-open') && !e.target.closest('#menuPop') && !e.target.closest('#btnMore')) closeMenu(); }, true);
   $('btnGuideSkip').addEventListener('click', closeGuide);
   $('btnGuidePrev').addEventListener('click', () => { if (gStep > 0) { gStep--; renderGuide(); } });
   $('btnGuideNext').addEventListener('click', () => { if (gStep < GUIDE_ICONS.length - 1) { gStep++; renderGuide(); } else closeGuide(); });
@@ -743,15 +765,13 @@
   $('search').addEventListener('input', () => { $('btnClear').hidden = !$('search').value; clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 220); });
   $('btnClear').addEventListener('click', () => { $('search').value = ''; $('btnClear').hidden = true; $('search').focus(); applyFilters(); });
   $('search').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
-  $('btnLevel').addEventListener('click', openSheet);
+  $('btnTopic').addEventListener('click', openSheet);
   $('sheetList').addEventListener('click', (e) => {
     const b = e.target.closest('.opt');
     if (!b) return;
     if (b.dataset.ui) { closeSheet(); setUi(b.dataset.ui); return; }
-    S.level = b.dataset.v;
-    updateLevelBtn(); closeSheet(); applyFilters();
+    if (b.dataset.t) { S.topic = b.dataset.t; closeSheet(); applyFilters(); }
   });
-  $('btnTheme').addEventListener('click', () => applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true));
   $('seg').addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
@@ -797,6 +817,7 @@
 
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
+    if (body.classList.contains('menu-open')) { closeMenu(); return true; }
     if (body.classList.contains('guide-open')) { closeGuide(); return true; }
     if (body.classList.contains('legal-open')) { closeLegal(); return true; }
     if (body.classList.contains('sheet-open')) { closeSheet(); return true; }

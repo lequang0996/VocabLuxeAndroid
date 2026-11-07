@@ -27,6 +27,7 @@ window.I18N = (() => {
   /* ------------------------------------------------------------------ */
   const T = {
     vi: {
+      menu: 'Menu',
       brandSub: 'Từ vựng Anh · Trung', topics: 'Chủ đề', langBtn: 'Ngôn ngữ', legalBtn: 'Giấy phép & Quyền riêng tư',
       openTopics: 'Mở danh sách chủ đề', toLight: 'Chuyển sang giao diện sáng', toDark: 'Chuyển sang giao diện tối',
       searchPh: 'Tìm từ, nghĩa, phiên âm…', clearSearch: 'Xóa từ khóa',
@@ -51,6 +52,7 @@ window.I18N = (() => {
       legalTitle: 'Giấy phép & Quyền riêng tư', lang_en: 'Tiếng Anh', lang_zh: 'Tiếng Trung',
     },
     en: {
+      menu: 'Menu',
       brandSub: 'English · Chinese vocabulary', topics: 'Topics', langBtn: 'Language', legalBtn: 'Licenses & Privacy',
       openTopics: 'Open topic list', toLight: 'Switch to light theme', toDark: 'Switch to dark theme',
       searchPh: 'Search words, meanings, pronunciation…', clearSearch: 'Clear search',
@@ -75,6 +77,7 @@ window.I18N = (() => {
       legalTitle: 'Licenses & Privacy', lang_en: 'English', lang_zh: 'Chinese',
     },
     zh: {
+      menu: '菜单',
       brandSub: '英语 · 汉语词汇', topics: '主题', langBtn: '语言', legalBtn: '许可与隐私',
       openTopics: '打开主题列表', toLight: '切换到浅色主题', toDark: '切换到深色主题',
       searchPh: '搜索单词、释义、拼音…', clearSearch: '清除搜索',
@@ -99,6 +102,7 @@ window.I18N = (() => {
       legalTitle: '许可与隐私', lang_en: '英语', lang_zh: '中文',
     },
     es: {
+      menu: 'Menú',
       brandSub: 'Vocabulario de inglés y chino', topics: 'Temas', langBtn: 'Idioma', legalBtn: 'Licencias y privacidad',
       openTopics: 'Abrir lista de temas', toLight: 'Cambiar al tema claro', toDark: 'Cambiar al tema oscuro',
       searchPh: 'Buscar palabra, significado, pronunciación…', clearSearch: 'Borrar búsqueda',
@@ -123,6 +127,7 @@ window.I18N = (() => {
       legalTitle: 'Licencias y privacidad', lang_en: 'Inglés', lang_zh: 'Chino',
     },
     pt: {
+      menu: 'Menu',
       brandSub: 'Vocabulário de inglês e chinês', topics: 'Temas', langBtn: 'Idioma', legalBtn: 'Licenças e privacidade',
       openTopics: 'Abrir lista de temas', toLight: 'Mudar para o tema claro', toDark: 'Mudar para o tema escuro',
       searchPh: 'Buscar palavra, significado, pronúncia…', clearSearch: 'Limpar busca',
@@ -147,6 +152,7 @@ window.I18N = (() => {
       legalTitle: 'Licenças e privacidade', lang_en: 'Inglês', lang_zh: 'Chinês',
     },
     ru: {
+      menu: 'Меню',
       brandSub: 'Словарный запас: английский · китайский', topics: 'Темы', langBtn: 'Язык', legalBtn: 'Лицензии и конфиденциальность',
       openTopics: 'Открыть список тем', toLight: 'Переключить на светлую тему', toDark: 'Переключить на тёмную тему',
       searchPh: 'Поиск слова, значения, произношения…', clearSearch: 'Очистить поиск',
@@ -171,6 +177,7 @@ window.I18N = (() => {
       legalTitle: 'Лицензии и конфиденциальность', lang_en: 'Английский', lang_zh: 'Китайский',
     },
     ja: {
+      menu: 'メニュー',
       brandSub: '英語・中国語の語彙', topics: 'トピック', langBtn: '言語', legalBtn: 'ライセンスとプライバシー',
       openTopics: 'トピック一覧を開く', toLight: 'ライトテーマに切り替え', toDark: 'ダークテーマに切り替え',
       searchPh: '単語・意味・発音を検索…', clearSearch: '検索をクリア',
@@ -195,6 +202,7 @@ window.I18N = (() => {
       legalTitle: 'ライセンスとプライバシー', lang_en: '英語', lang_zh: '中国語',
     },
     ko: {
+      menu: '메뉴',
       brandSub: '영어 · 중국어 어휘', topics: '주제', langBtn: '언어', legalBtn: '라이선스 및 개인정보',
       openTopics: '주제 목록 열기', toLight: '라이트 테마로 전환', toDark: '다크 테마로 전환',
       searchPh: '단어, 뜻, 발음 검색…', clearSearch: '검색어 지우기',
@@ -252,198 +260,55 @@ window.I18N = (() => {
   /*  Giấy phép sử dụng, nguồn dữ liệu, quảng cáo, quyền riêng tư        */
   /*  Mỗi mục: h = tiêu đề, p = đoạn văn, li = gạch đầu dòng             */
   /* ------------------------------------------------------------------ */
+  /* Giấy phép (chỉ nguồn dữ liệu, theo yêu cầu) và quyền riêng tư. Mỗi mục: h = tiêu đề, p = đoạn văn */
   const LEGAL = {
     vi: { privacyBtn: 'Xem Chính sách quyền riêng tư', sections: [
-      { h: '1. Giấy phép sử dụng ứng dụng', p: [
-        'VocabLuxe cấp cho bạn quyền cá nhân, phi thương mại, không độc quyền và không thể chuyển nhượng để cài đặt và sử dụng ứng dụng nhằm mục đích học tập.',
-        'Bạn không được bán lại, cho thuê, sao chép hàng loạt hoặc trích xuất dữ liệu từ vựng để phân phối lại.',
-        'Ứng dụng được cung cấp “nguyên trạng”, không có bảo đảm nào. Nghĩa, phiên âm và câu ví dụ có thể do máy dịch nên có thể sai sót. Trong phạm vi pháp luật cho phép, nhà phát triển không chịu trách nhiệm cho thiệt hại phát sinh từ việc sử dụng ứng dụng.'] },
-      { h: '2. Tiếng Anh — nguồn dữ liệu & giấy phép', li: [
-        'Danh sách từ và cấp độ: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. “Oxford 3000” và “Oxford 5000” là nhãn hiệu của Oxford University Press.',
-        'Phiên âm và định nghĩa tiếng Anh: Free Dictionary API (dictionaryapi.dev), dữ liệu gốc từ Wiktionary, giấy phép CC BY-SA 3.0.',
-        'Câu ví dụ: Tatoeba (tatoeba.org), giấy phép CC BY 2.0 FR, do các thành viên Tatoeba đóng góp.',
-        'Dịch tự động: Google Dịch và MyMemory (Translated).'] },
-      { h: '3. Tiếng Trung — nguồn dữ liệu & giấy phép', li: [
-        'Danh sách từ theo cấp độ HSK 1–6. “HSK” là tên gọi và nhãn hiệu của Chinese Testing International (CTI).',
-        'Pinyin, nghĩa và câu ví dụ được tích hợp sẵn; phần còn thiếu được bổ sung từ Tatoeba (CC BY 2.0 FR) và dịch tự động (Google Dịch / MyMemory).'] },
-      { h: '4. Quảng cáo', p: [
-        'Ứng dụng hiển thị quảng cáo do Google AdMob cung cấp. AdMob có thể dùng mã quảng cáo (Advertising ID), địa chỉ IP và thông tin thiết bị để hiển thị và đo lường quảng cáo.',
-        'Ở nơi pháp luật yêu cầu (ví dụ EEA, Vương quốc Anh), bạn sẽ được hỏi đồng ý qua thông báo của Google và có thể đổi lựa chọn sau. Bạn có thể đặt lại mã quảng cáo hoặc tắt quảng cáo cá nhân hóa trong Cài đặt Android > Google > Quảng cáo. Chi tiết: policies.google.com/technologies/partner-sites'] },
-      { h: '5. Phát âm', p: ['Phát âm dùng bộ chuyển văn bản thành giọng nói (Text-to-Speech) có sẵn trên thiết bị; ứng dụng không ghi âm hay lưu tệp âm thanh. Tùy cài đặt máy, nhà cung cấp bộ đọc giọng có thể xử lý văn bản được đọc theo chính sách của họ.'] },
-      { h: '6. Thành phần mã nguồn mở', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Thư viện Google Play In-App Update — do Google cung cấp theo điều khoản riêng của Google.'] },
-      { h: '6b. Miễn trừ liên kết', p: ['VocabLuxe là ứng dụng độc lập, không liên kết với, không được bảo trợ hay xác nhận bởi Oxford University Press, Chinese Testing International, Google, Tatoeba hay Wiktionary. Mọi tên gọi và nhãn hiệu thuộc về chủ sở hữu tương ứng và chỉ được nhắc đến để nêu nguồn.'] },
-      { h: '7. Quyền riêng tư', p: ['Không cần tài khoản. Tiến độ học và cài đặt chỉ lưu trên máy bạn. Từ bạn tra được gửi tới các dịch vụ ở mục 2 và 3; quảng cáo do Google AdMob cung cấp; việc kiểm tra cập nhật dùng Google Play. Xem đầy đủ trong Chính sách quyền riêng tư.'] },
+      { h: 'Giấy phép', p: [
+        'Từ vựng & định nghĩa tiếng Anh: lấy từ Wiktionary / WordNet, sử dụng theo giấy phép Creative Commons Ghi nhận nguồn – Chia sẻ tương tự 4.0 Quốc tế (CC BY-SA 4.0).',
+        'Dữ liệu từ điển tiếng Trung: lấy từ CC-CEDICT, sử dụng theo giấy phép Creative Commons Ghi nhận nguồn – Chia sẻ tương tự 4.0 Quốc tế (CC BY-SA 4.0).'] },
+      { h: 'Quyền riêng tư', p: ['Không cần tài khoản. Tiến độ học và cài đặt chỉ lưu trên máy bạn. Từ bạn tra được gửi tới các dịch vụ dịch và từ điển; quảng cáo do Google AdMob cung cấp; việc kiểm tra cập nhật dùng Google Play. Xem đầy đủ trong Chính sách quyền riêng tư.'] },
     ] },
     en: { privacyBtn: 'View Privacy Policy', sections: [
-      { h: '1. License to use the app', p: [
-        'VocabLuxe grants you a personal, non-commercial, non-exclusive, non-transferable license to install and use the app for learning.',
-        'You may not resell, rent, mass-copy or extract the vocabulary data in order to redistribute it.',
-        'The app is provided “as is” without warranty of any kind. Meanings, phonetics and examples may be machine-translated and may contain errors. To the extent permitted by law, the developer is not liable for damages arising from use of the app.'] },
-      { h: '2. English — data sources & licenses', li: [
-        'Word list and levels: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. “Oxford 3000” and “Oxford 5000” are trademarks of Oxford University Press.',
-        'Phonetics and English definitions: Free Dictionary API (dictionaryapi.dev), data derived from Wiktionary, CC BY-SA 3.0.',
-        'Example sentences: Tatoeba (tatoeba.org), CC BY 2.0 FR, contributed by Tatoeba members.',
-        'Machine translation: Google Translate and MyMemory (Translated).'] },
-      { h: '3. Chinese — data sources & licenses', li: [
-        'Word list by HSK levels 1–6. “HSK” is a name and trademark of Chinese Testing International (CTI).',
-        'Pinyin, meanings and example sentences are built into the app; missing items are added from Tatoeba (CC BY 2.0 FR) and machine translation (Google Translate / MyMemory).'] },
-      { h: '4. Advertising', p: [
-        'The app shows ads provided by Google AdMob. AdMob may use your device’s advertising ID, IP address and device information to show and measure ads.',
-        'Where required (for example in the EEA and the UK), you are asked for consent through Google’s consent message and can change your choice later. You can reset your advertising ID or opt out of personalized ads in Android Settings > Google > Ads. Learn more: policies.google.com/technologies/partner-sites'] },
-      { h: '5. Pronunciation', p: ['Pronunciation uses the text-to-speech engine installed on your device; the app does not record audio or store audio files. Depending on your device settings, the engine provider may process the spoken text under its own policy.'] },
-      { h: '6. Open-source components', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Google Play In-App Update library — provided by Google under Google’s own terms.'] },
-      { h: '6b. No affiliation', p: ['VocabLuxe is an independent app and is not affiliated with, sponsored or endorsed by Oxford University Press, Chinese Testing International, Google, Tatoeba or Wiktionary. All names and trademarks belong to their respective owners and are mentioned only to credit sources.'] },
-      { h: '7. Privacy', p: ['No account is required. Your study progress and settings are stored only on your device. The words you look up are sent to the services in sections 2 and 3; ads are provided by Google AdMob; update checks use Google Play. See the full Privacy Policy.'] },
+      { h: 'Licenses', p: [
+        'English Vocabulary & Definitions: Sourced from Wiktionary / WordNet, used under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).',
+        'Chinese Dictionary Data: Sourced from CC-CEDICT, used under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).'] },
+      { h: 'Privacy', p: ['No account is required. Your study progress and settings are stored only on your device. The words you look up are sent to translation and dictionary services, ads are provided by Google AdMob, and update checks use Google Play. See the full Privacy Policy.'] },
     ] },
     zh: { privacyBtn: '查看隐私政策', sections: [
-      { h: '1. 应用使用许可', p: [
-        'VocabLuxe 授予您个人、非商业、非独占、不可转让的许可，用于安装并使用本应用进行学习。',
-        '未经许可，您不得转售、出租、批量复制或提取词汇数据用于再分发。',
-        '本应用按“现状”提供，不作任何保证。释义、音标和例句可能由机器翻译生成，可能存在错误。在法律允许的范围内，开发者不对使用本应用造成的损失承担责任。'] },
-      { h: '2. 英语——数据来源与许可', li: [
-        '词表与级别：The Oxford 3000™ / Oxford 5000™，© Oxford University Press。“Oxford 3000”和“Oxford 5000”是牛津大学出版社的商标。',
-        '音标与英文释义：Free Dictionary API（dictionaryapi.dev），数据源自 Wiktionary，许可 CC BY-SA 3.0。',
-        '例句：Tatoeba（tatoeba.org），许可 CC BY 2.0 FR，由 Tatoeba 成员贡献。',
-        '机器翻译：Google 翻译与 MyMemory（Translated）。'] },
-      { h: '3. 汉语——数据来源与许可', li: [
-        '词表按 HSK 1–6 级划分。“HSK”是 Chinese Testing International（CTI）的名称和商标。',
-        '拼音、释义和例句已内置于应用；缺失部分来自 Tatoeba（CC BY 2.0 FR）和机器翻译（Google 翻译 / MyMemory）。'] },
-      { h: '4. 广告', p: [
-        '本应用展示由 Google AdMob 提供的广告。AdMob 可能使用您设备的广告 ID、IP 地址和设备信息来展示和衡量广告。',
-        '在法律要求的地区（例如欧洲经济区和英国），您会通过 Google 的同意提示被询问，并可随时更改选择。您可以在 Android“设置 > Google > 广告”中重置广告 ID 或停用个性化广告。详情：policies.google.com/technologies/partner-sites'] },
-      { h: '5. 发音', p: ['发音使用您设备上安装的文字转语音引擎；本应用不录音，也不保存音频文件。视设备设置而定，语音引擎提供商可能按其自身政策处理被朗读的文本。'] },
-      { h: '6. 开源组件', li: [
-        'AndroidX Activity、Core、WebKit——Apache License 2.0（apache.org/licenses/LICENSE-2.0）。',
-        'Kotlin Standard Library——Apache License 2.0。',
-        'Google Play 应用内更新库——由 Google 按其自身条款提供。'] },
-      { h: '6b. 无关联声明', p: ['VocabLuxe 是独立应用，与牛津大学出版社、Chinese Testing International、Google、Tatoeba 或 Wiktionary 无关联，也未获其赞助或认可。所有名称和商标归各自所有者所有，仅用于注明来源。'] },
-      { h: '7. 隐私', p: ['无需账号。学习进度和设置仅保存在您的设备上。您查询的单词会发送至第 2、3 节所列服务；广告由 Google AdMob 提供；更新检查使用 Google Play。完整内容请查看隐私政策。'] },
+      { h: '许可', p: [
+        '英语词汇与释义：来源于 Wiktionary / WordNet，依据知识共享署名-相同方式共享 4.0 国际许可协议（CC BY-SA 4.0）使用。',
+        '汉语词典数据：来源于 CC-CEDICT，依据知识共享署名-相同方式共享 4.0 国际许可协议（CC BY-SA 4.0）使用。'] },
+      { h: '隐私', p: ['无需账号。学习进度和设置仅保存在您的设备上。您查询的单词会发送至翻译和词典服务；广告由 Google AdMob 提供；更新检查使用 Google Play。完整内容请查看隐私政策。'] },
     ] },
     es: { privacyBtn: 'Ver la Política de privacidad', sections: [
-      { h: '1. Licencia de uso de la aplicación', p: [
-        'VocabLuxe te concede una licencia personal, no comercial, no exclusiva e intransferible para instalar y usar la aplicación con fines de aprendizaje.',
-        'No puedes revender, alquilar, copiar en masa ni extraer los datos de vocabulario para redistribuirlos.',
-        'La aplicación se ofrece «tal cual», sin garantías de ningún tipo. Los significados, la fonética y los ejemplos pueden ser traducciones automáticas y contener errores. En la medida permitida por la ley, el desarrollador no se responsabiliza de los daños derivados del uso de la aplicación.'] },
-      { h: '2. Inglés: fuentes de datos y licencias', li: [
-        'Lista de palabras y niveles: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. «Oxford 3000» y «Oxford 5000» son marcas de Oxford University Press.',
-        'Fonética y definiciones en inglés: Free Dictionary API (dictionaryapi.dev), datos derivados de Wiktionary, CC BY-SA 3.0.',
-        'Frases de ejemplo: Tatoeba (tatoeba.org), CC BY 2.0 FR, aportadas por miembros de Tatoeba.',
-        'Traducción automática: Google Translate y MyMemory (Translated).'] },
-      { h: '3. Chino: fuentes de datos y licencias', li: [
-        'Lista de palabras por niveles HSK 1–6. «HSK» es un nombre y una marca de Chinese Testing International (CTI).',
-        'El pinyin, los significados y los ejemplos vienen incluidos en la aplicación; lo que falta se completa con Tatoeba (CC BY 2.0 FR) y traducción automática (Google Translate / MyMemory).'] },
-      { h: '4. Publicidad', p: [
-        'La aplicación muestra anuncios proporcionados por Google AdMob. AdMob puede usar el ID de publicidad, la dirección IP y la información del dispositivo para mostrar y medir anuncios.',
-        'Donde la ley lo exige (por ejemplo, en el EEE y el Reino Unido), se te pide consentimiento mediante el mensaje de Google y puedes cambiar tu elección más tarde. Puedes restablecer el ID de publicidad o desactivar los anuncios personalizados en Ajustes de Android > Google > Anuncios. Más información: policies.google.com/technologies/partner-sites'] },
-      { h: '5. Pronunciación', p: ['La pronunciación usa el motor de texto a voz instalado en tu dispositivo; la aplicación no graba audio ni guarda archivos de audio. Según los ajustes del dispositivo, el proveedor del motor puede procesar el texto leído según su propia política.'] },
-      { h: '6. Componentes de código abierto', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Biblioteca Google Play In-App Update — proporcionada por Google bajo sus propios términos.'] },
-      { h: '6b. Sin afiliación', p: ['VocabLuxe es una aplicación independiente y no está afiliada, patrocinada ni respaldada por Oxford University Press, Chinese Testing International, Google, Tatoeba ni Wiktionary. Todos los nombres y marcas pertenecen a sus respectivos propietarios y se mencionan solo para citar las fuentes.'] },
-      { h: '7. Privacidad', p: ['No se necesita cuenta. Tu progreso y ajustes se guardan solo en tu dispositivo. Las palabras que consultas se envían a los servicios de las secciones 2 y 3; los anuncios los ofrece Google AdMob; la comprobación de actualizaciones usa Google Play. Consulta la Política de privacidad completa.'] },
+      { h: 'Licencias', p: [
+        'Vocabulario y definiciones en inglés: procedentes de Wiktionary / WordNet, utilizados bajo la licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0).',
+        'Datos del diccionario de chino: procedentes de CC-CEDICT, utilizados bajo la licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0).'] },
+      { h: 'Privacidad', p: ['No se necesita cuenta. Tu progreso y ajustes se guardan solo en tu dispositivo. Las palabras que consultas se envían a servicios de traducción y diccionario; los anuncios los ofrece Google AdMob; la comprobación de actualizaciones usa Google Play. Consulta la Política de privacidad completa.'] },
     ] },
     pt: { privacyBtn: 'Ver a Política de privacidade', sections: [
-      { h: '1. Licença de uso do aplicativo', p: [
-        'O VocabLuxe concede a você uma licença pessoal, não comercial, não exclusiva e intransferível para instalar e usar o aplicativo para fins de aprendizado.',
-        'Você não pode revender, alugar, copiar em massa nem extrair os dados de vocabulário para redistribuí-los.',
-        'O aplicativo é fornecido “como está”, sem garantias de qualquer tipo. Significados, fonética e exemplos podem ser traduzidos automaticamente e conter erros. Na medida permitida por lei, o desenvolvedor não se responsabiliza por danos decorrentes do uso do aplicativo.'] },
-      { h: '2. Inglês: fontes de dados e licenças', li: [
-        'Lista de palavras e níveis: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. “Oxford 3000” e “Oxford 5000” são marcas da Oxford University Press.',
-        'Fonética e definições em inglês: Free Dictionary API (dictionaryapi.dev), dados derivados do Wiktionary, CC BY-SA 3.0.',
-        'Frases de exemplo: Tatoeba (tatoeba.org), CC BY 2.0 FR, contribuídas por membros do Tatoeba.',
-        'Tradução automática: Google Tradutor e MyMemory (Translated).'] },
-      { h: '3. Chinês: fontes de dados e licenças', li: [
-        'Lista de palavras por níveis HSK 1–6. “HSK” é um nome e uma marca da Chinese Testing International (CTI).',
-        'Pinyin, significados e exemplos já vêm no aplicativo; o que falta é complementado com Tatoeba (CC BY 2.0 FR) e tradução automática (Google Tradutor / MyMemory).'] },
-      { h: '4. Publicidade', p: [
-        'O aplicativo exibe anúncios fornecidos pelo Google AdMob. O AdMob pode usar o ID de publicidade, o endereço IP e informações do dispositivo para exibir e medir anúncios.',
-        'Onde a lei exigir (por exemplo, no EEE e no Reino Unido), você é solicitado a dar consentimento pela mensagem do Google e pode alterar a escolha depois. Você pode redefinir o ID de publicidade ou desativar anúncios personalizados em Configurações do Android > Google > Anúncios. Saiba mais: policies.google.com/technologies/partner-sites'] },
-      { h: '5. Pronúncia', p: ['A pronúncia usa o mecanismo de conversão de texto em voz instalado no seu dispositivo; o aplicativo não grava áudio nem armazena arquivos de áudio. Dependendo das configurações do aparelho, o provedor do mecanismo pode processar o texto lido conforme a própria política.'] },
-      { h: '6. Componentes de código aberto', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Biblioteca Google Play In-App Update — fornecida pelo Google sob termos próprios do Google.'] },
-      { h: '6b. Sem afiliação', p: ['O VocabLuxe é um aplicativo independente e não é afiliado, patrocinado nem endossado pela Oxford University Press, Chinese Testing International, Google, Tatoeba ou Wiktionary. Todos os nomes e marcas pertencem aos respectivos proprietários e são citados apenas para creditar as fontes.'] },
-      { h: '7. Privacidade', p: ['Não é necessário criar conta. Seu progresso e configurações ficam apenas no seu dispositivo. As palavras consultadas são enviadas aos serviços das seções 2 e 3; os anúncios são fornecidos pelo Google AdMob; a verificação de atualizações usa o Google Play. Veja a Política de privacidade completa.'] },
+      { h: 'Licenças', p: [
+        'Vocabulário e definições em inglês: obtidos do Wiktionary / WordNet, usados sob a licença Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional (CC BY-SA 4.0).',
+        'Dados do dicionário de chinês: obtidos do CC-CEDICT, usados sob a licença Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional (CC BY-SA 4.0).'] },
+      { h: 'Privacidade', p: ['Não é necessário criar conta. Seu progresso e configurações ficam apenas no seu dispositivo. As palavras consultadas são enviadas a serviços de tradução e dicionário; os anúncios são fornecidos pelo Google AdMob; a verificação de atualizações usa o Google Play. Veja a Política de privacidade completa.'] },
     ] },
     ru: { privacyBtn: 'Открыть Политику конфиденциальности', sections: [
-      { h: '1. Лицензия на использование приложения', p: [
-        'VocabLuxe предоставляет вам личную, некоммерческую, неисключительную и непередаваемую лицензию на установку и использование приложения в учебных целях.',
-        'Запрещается перепродавать, сдавать в аренду, массово копировать или извлекать словарные данные для дальнейшего распространения.',
-        'Приложение предоставляется «как есть», без каких-либо гарантий. Значения, транскрипция и примеры могут быть получены машинным переводом и содержать ошибки. В пределах, допускаемых законом, разработчик не несёт ответственности за ущерб, возникший при использовании приложения.'] },
-      { h: '2. Английский — источники данных и лицензии', li: [
-        'Список слов и уровни: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. «Oxford 3000» и «Oxford 5000» — товарные знаки Oxford University Press.',
-        'Транскрипция и английские определения: Free Dictionary API (dictionaryapi.dev), данные на основе Wiktionary, лицензия CC BY-SA 3.0.',
-        'Примеры предложений: Tatoeba (tatoeba.org), лицензия CC BY 2.0 FR, вклад участников Tatoeba.',
-        'Машинный перевод: Google Translate и MyMemory (Translated).'] },
-      { h: '3. Китайский — источники данных и лицензии', li: [
-        'Список слов по уровням HSK 1–6. «HSK» — название и товарный знак Chinese Testing International (CTI).',
-        'Пиньинь, значения и примеры встроены в приложение; недостающее дополняется из Tatoeba (CC BY 2.0 FR) и машинного перевода (Google Translate / MyMemory).'] },
-      { h: '4. Реклама', p: [
-        'Приложение показывает рекламу Google AdMob. AdMob может использовать рекламный идентификатор, IP-адрес и данные об устройстве для показа и измерения рекламы.',
-        'Там, где этого требует закон (например, в ЕЭЗ и Великобритании), вас просят дать согласие в окне Google, и позже вы можете изменить выбор. Сбросить рекламный идентификатор или отключить персонализированную рекламу можно в Настройках Android > Google > Реклама. Подробнее: policies.google.com/technologies/partner-sites'] },
-      { h: '5. Произношение', p: ['Для произношения используется синтезатор речи, установленный на вашем устройстве; приложение не записывает звук и не сохраняет аудиофайлы. В зависимости от настроек устройства поставщик синтезатора может обрабатывать озвучиваемый текст по собственной политике.'] },
-      { h: '6. Компоненты с открытым исходным кодом', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Библиотека Google Play In-App Update — предоставляется Google на собственных условиях Google.'] },
-      { h: '6b. Отсутствие связи', p: ['VocabLuxe — независимое приложение; оно не связано с Oxford University Press, Chinese Testing International, Google, Tatoeba и Wiktionary и не спонсируется и не одобряется ими. Все названия и товарные знаки принадлежат их владельцам и упоминаются только для указания источников.'] },
-      { h: '7. Конфиденциальность', p: ['Учётная запись не нужна. Прогресс и настройки хранятся только на вашем устройстве. Искомые слова отправляются службам из разделов 2 и 3; рекламу показывает Google AdMob; проверка обновлений использует Google Play. Полный текст — в Политике конфиденциальности.'] },
+      { h: 'Лицензии', p: [
+        'Английская лексика и определения: источник — Wiktionary / WordNet, используются по лицензии Creative Commons «Attribution-ShareAlike 4.0 International» (CC BY-SA 4.0).',
+        'Данные китайского словаря: источник — CC-CEDICT, используются по лицензии Creative Commons «Attribution-ShareAlike 4.0 International» (CC BY-SA 4.0).'] },
+      { h: 'Конфиденциальность', p: ['Учётная запись не нужна. Прогресс и настройки хранятся только на вашем устройстве. Искомые слова отправляются службам перевода и словарей; рекламу показывает Google AdMob; проверка обновлений использует Google Play. Полный текст — в Политике конфиденциальности.'] },
     ] },
     ja: { privacyBtn: 'プライバシーポリシーを見る', sections: [
-      { h: '1. アプリの使用許諾', p: [
-        'VocabLuxe は、学習目的でアプリをインストールして使用するための、個人的・非商業的・非独占的・譲渡不可の使用許諾をお客様に付与します。',
-        '語彙データを再配布する目的で、転売・貸与・大量複製・抽出することはできません。',
-        '本アプリは現状有姿で提供され、いかなる保証もありません。意味・発音表記・例文は機械翻訳による場合があり、誤りを含むことがあります。法令で認められる範囲で、開発者は本アプリの利用により生じた損害について責任を負いません。'] },
-      { h: '2. 英語 — データの出典とライセンス', li: [
-        '単語リストとレベル：The Oxford 3000™ / Oxford 5000™、© Oxford University Press。「Oxford 3000」「Oxford 5000」は Oxford University Press の商標です。',
-        '発音表記と英語の定義：Free Dictionary API（dictionaryapi.dev）。データは Wiktionary 由来、CC BY-SA 3.0。',
-        '例文：Tatoeba（tatoeba.org）、CC BY 2.0 FR。Tatoeba の投稿者による提供。',
-        '機械翻訳：Google 翻訳および MyMemory（Translated）。'] },
-      { h: '3. 中国語 — データの出典とライセンス', li: [
-        'HSK 1〜6級に基づく単語リスト。「HSK」は Chinese Testing International（CTI）の名称および商標です。',
-        'ピンイン・意味・例文はアプリに内蔵しており、不足分は Tatoeba（CC BY 2.0 FR）と機械翻訳（Google 翻訳 / MyMemory）で補います。'] },
-      { h: '4. 広告', p: [
-        '本アプリは Google AdMob が提供する広告を表示します。AdMob は、広告の表示と効果測定のために、広告 ID、IP アドレス、端末情報を使用することがあります。',
-        '法令で必要な地域（EEA や英国など）では、Google の同意メッセージで同意をお尋ねし、後から変更できます。広告 ID のリセットやパーソナライズ広告の無効化は、Android の「設定 > Google > 広告」で行えます。詳細：policies.google.com/technologies/partner-sites'] },
-      { h: '5. 発音', p: ['発音には端末にインストールされた音声合成エンジンを使用します。アプリは録音せず、音声ファイルも保存しません。端末の設定によっては、エンジン提供元が読み上げるテキストを独自のポリシーで処理する場合があります。'] },
-      { h: '6. オープンソースコンポーネント', li: [
-        'AndroidX Activity、Core、WebKit — Apache License 2.0（apache.org/licenses/LICENSE-2.0）。',
-        'Kotlin Standard Library — Apache License 2.0。',
-        'Google Play アプリ内アップデートライブラリ — Google が独自の条件で提供。'] },
-      { h: '6b. 提携関係について', p: ['VocabLuxe は独立したアプリであり、Oxford University Press、Chinese Testing International、Google、Tatoeba、Wiktionary との提携・後援・承認関係はありません。名称および商標は各所有者に帰属し、出典の明示のためにのみ記載しています。'] },
-      { h: '7. プライバシー', p: ['アカウントは不要です。学習の進捗と設定は端末内にのみ保存されます。検索した単語は第2・3項のサービスに送信され、広告は Google AdMob が提供し、アップデート確認には Google Play を使用します。詳細はプライバシーポリシーをご覧ください。'] },
+      { h: 'ライセンス', p: [
+        '英語の語彙と定義：Wiktionary / WordNet を出典とし、クリエイティブ・コモンズ 表示-継承 4.0 国際ライセンス（CC BY-SA 4.0）に基づき使用しています。',
+        '中国語辞書データ：CC-CEDICT を出典とし、クリエイティブ・コモンズ 表示-継承 4.0 国際ライセンス（CC BY-SA 4.0）に基づき使用しています。'] },
+      { h: 'プライバシー', p: ['アカウントは不要です。学習の進捗と設定は端末内にのみ保存されます。検索した単語は翻訳・辞書サービスに送信され、広告は Google AdMob が提供し、アップデート確認には Google Play を使用します。詳細はプライバシーポリシーをご覧ください。'] },
     ] },
     ko: { privacyBtn: '개인정보 처리방침 보기', sections: [
-      { h: '1. 앱 사용 라이선스', p: [
-        'VocabLuxe는 학습 목적으로 앱을 설치하고 사용할 수 있는 개인적, 비상업적, 비독점적, 양도 불가능한 라이선스를 귀하에게 부여합니다.',
-        '어휘 데이터를 재배포하기 위해 재판매, 대여, 대량 복사 또는 추출할 수 없습니다.',
-        '앱은 어떠한 보증 없이 "있는 그대로" 제공됩니다. 뜻, 발음 표기, 예문은 기계 번역일 수 있으며 오류가 있을 수 있습니다. 법이 허용하는 범위에서 개발자는 앱 사용으로 발생한 손해에 책임지지 않습니다.'] },
-      { h: '2. 영어 — 데이터 출처 및 라이선스', li: [
-        '단어 목록 및 레벨: The Oxford 3000™ / Oxford 5000™, © Oxford University Press. "Oxford 3000"과 "Oxford 5000"은 Oxford University Press의 상표입니다.',
-        '발음 표기 및 영어 정의: Free Dictionary API(dictionaryapi.dev), 데이터는 Wiktionary 기반, CC BY-SA 3.0.',
-        '예문: Tatoeba(tatoeba.org), CC BY 2.0 FR, Tatoeba 회원이 기여.',
-        '기계 번역: Google 번역 및 MyMemory(Translated).'] },
-      { h: '3. 중국어 — 데이터 출처 및 라이선스', li: [
-        'HSK 1–6급 기준 단어 목록. "HSK"는 Chinese Testing International(CTI)의 명칭이자 상표입니다.',
-        '병음, 뜻, 예문은 앱에 내장되어 있으며 부족한 부분은 Tatoeba(CC BY 2.0 FR)와 기계 번역(Google 번역 / MyMemory)으로 보충합니다.'] },
-      { h: '4. 광고', p: [
-        '앱은 Google AdMob이 제공하는 광고를 표시합니다. AdMob은 광고 표시와 측정을 위해 기기의 광고 ID, IP 주소, 기기 정보를 사용할 수 있습니다.',
-        '법률상 필요한 지역(예: EEA, 영국)에서는 Google의 동의 안내로 동의를 요청하며, 나중에 선택을 변경할 수 있습니다. Android 설정 > Google > 광고에서 광고 ID를 재설정하거나 맞춤 광고를 끌 수 있습니다. 자세히: policies.google.com/technologies/partner-sites'] },
-      { h: '5. 발음', p: ['발음은 기기에 설치된 음성 합성(TTS) 엔진을 사용합니다. 앱은 녹음하지 않으며 오디오 파일을 저장하지 않습니다. 기기 설정에 따라 엔진 제공업체가 읽는 텍스트를 자체 정책에 따라 처리할 수 있습니다.'] },
-      { h: '6. 오픈소스 구성 요소', li: [
-        'AndroidX Activity, Core, WebKit — Apache License 2.0(apache.org/licenses/LICENSE-2.0).',
-        'Kotlin Standard Library — Apache License 2.0.',
-        'Google Play 인앱 업데이트 라이브러리 — Google이 자체 약관에 따라 제공.'] },
-      { h: '6b. 제휴 관계 없음', p: ['VocabLuxe는 독립 앱이며 Oxford University Press, Chinese Testing International, Google, Tatoeba, Wiktionary와 제휴, 후원 또는 승인 관계가 없습니다. 모든 명칭과 상표는 각 소유자에게 귀속되며 출처 표기를 위해서만 언급됩니다.'] },
-      { h: '7. 개인정보', p: ['계정이 필요 없습니다. 학습 진행 상황과 설정은 기기에만 저장됩니다. 조회한 단어는 2·3항의 서비스로 전송되고, 광고는 Google AdMob이 제공하며, 업데이트 확인에는 Google Play를 사용합니다. 전체 내용은 개인정보 처리방침을 확인하세요.'] },
+      { h: '라이선스', p: [
+        '영어 어휘 및 정의: Wiktionary / WordNet에서 가져왔으며, 크리에이티브 커먼즈 저작자표시-동일조건변경허락 4.0 국제 라이선스(CC BY-SA 4.0)에 따라 사용합니다.',
+        '중국어 사전 데이터: CC-CEDICT에서 가져왔으며, 크리에이티브 커먼즈 저작자표시-동일조건변경허락 4.0 국제 라이선스(CC BY-SA 4.0)에 따라 사용합니다.'] },
+      { h: '개인정보', p: ['계정이 필요 없습니다. 학습 진행 상황과 설정은 기기에만 저장됩니다. 조회한 단어는 번역·사전 서비스로 전송되고, 광고는 Google AdMob이 제공하며, 업데이트 확인에는 Google Play를 사용합니다. 전체 내용은 개인정보 처리방침을 확인하세요.'] },
     ] },
   };
 

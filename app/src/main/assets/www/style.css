@@ -54,7 +54,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .tonal:active{background:var(--surface-2)}
 .tonal.strong,.tonal.active{background:var(--primary-soft);border-color:transparent;color:var(--primary-text)}
 .tonal.strong:active{filter:brightness(.96)}
-#btnLevel[hidden]{display:none}
 
 /* ---------- menu chủ đề ---------- */
 #scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .22s;z-index:20}
@@ -127,7 +126,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .rw{font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
 .rs{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:1px}
 .rtags{display:flex;align-items:center;gap:7px;flex:none}
-.rl{font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--primary-text);background:var(--primary-soft);border-radius:8px;padding:3px 8px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rl{font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--primary-text);background:var(--primary-soft);border-radius:8px;padding:3px 8px;max-width:min(150px,38vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rf{width:17px;height:17px;color:var(--amber);fill:var(--amber);stroke:var(--amber)}
 .rc{width:21px;height:21px;color:var(--success)}
 .empty{padding:48px 28px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
@@ -192,6 +191,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .lpanel b{font-weight:600}
 .lpanel .tonal{margin-top:4px}
 
+/* ---------- menu thả xuống (nút menu ở góc trên trái) ---------- */
+.menupop{position:absolute;z-index:55;min-width:250px;max-width:calc(100vw - 20px);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:6px;
+  box-shadow:0 14px 40px rgba(20,16,60,.24);transform-origin:top right;opacity:0;transform:scale(.92) translateY(-6px);transition:opacity .14s,transform .16s}
+.menupop.show{opacity:1;transform:none}
+.menupop[hidden]{display:none}
+.mitem{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 14px;border-radius:12px;font-size:15px;font-weight:600;color:var(--text);text-align:left}
+.mitem:active{background:var(--surface-2)}
+.mitem .ic{color:var(--muted);flex:none}
+
 /* ---------- hướng dẫn sử dụng ---------- */
 #guide{position:absolute;inset:0;background:var(--bg);z-index:48;display:flex;flex-direction:column;
   transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1);visibility:hidden}
@@ -239,6 +247,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .opt{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:0 14px;border-radius:16px;text-align:left;font-size:16px;font-weight:500}
 .opt:active{background:var(--surface-2)}
 .opt .flag{font-size:22px;line-height:1;flex:none}
+.opt .tsym{width:36px;height:36px;border-radius:11px;background:var(--surface-2);color:var(--muted);display:grid;place-items:center;font-size:16px;flex:none}
+.opt.on .tsym{background:var(--primary);color:var(--on-primary)}
 .opt .oname{flex:1;min-width:0}
 .opt .cnt{margin-left:auto;color:var(--muted);font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums}
 .opt .oc{width:22px;height:22px;color:var(--primary);flex:none;visibility:hidden}
@@ -264,7 +274,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
   #drawer{position:relative;transform:none;visibility:visible;width:auto;z-index:1;border-radius:0;box-shadow:none;border-right:1px solid var(--line)}
   #listPane{position:relative;border-right:1px solid var(--line)}
   #detail{position:relative;transform:none;visibility:visible;z-index:1}
-  #btnMenu,#btnBack{display:none}
+  #btnMenu,#btnBack,#btnTopic{display:none}
   #sheet{left:300px;right:auto;width:410px}
   #toast{bottom:24px}
 }
