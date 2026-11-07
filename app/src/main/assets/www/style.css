@@ -78,8 +78,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .trow.on .tn{color:var(--primary-text)}
 
 /* nút mở màn hình giấy phép (cuối menu) */
-.legal-link{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-top:6px;padding:0 14px;border-radius:14px;border-top:1px solid var(--line);
-  border-radius:0 0 14px 14px;font-size:13.5px;font-weight:600;color:var(--muted);flex:none}
+.dfoot{flex:none;border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+.legal-link{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:14px;
+  font-size:13.5px;font-weight:600;color:var(--muted);flex:none}
 .legal-link:active{background:var(--surface-2)}
 
 /* ---------- danh sách ---------- */
@@ -191,6 +192,31 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .lpanel b{font-weight:600}
 .lpanel .tonal{margin-top:4px}
 
+/* ---------- hướng dẫn sử dụng ---------- */
+#guide{position:absolute;inset:0;background:var(--bg);z-index:48;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.guide-open #guide{transform:none;visibility:visible}
+.gtop{display:flex;justify-content:flex-end;padding:10px 14px 0}
+.gskip{min-height:40px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
+.gskip:active{background:var(--surface-2)}
+.gbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 28px;max-width:560px;width:100%;margin:0 auto}
+.gicon{width:96px;height:96px;border-radius:30px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;margin-bottom:26px}
+.gicon .ic{width:44px;height:44px}
+.gtitle{font-size:24px;line-height:1.25;font-weight:800;letter-spacing:-.02em;margin:0 0 12px}
+.gtext{font-size:16px;line-height:1.6;color:var(--muted);margin:0}
+.gdots{display:flex;justify-content:center;gap:8px;padding:10px 0 14px}
+.gdots i{width:8px;height:8px;border-radius:99px;background:var(--line);transition:width .2s,background .2s}
+.gdots i.on{width:24px;background:var(--primary)}
+.gnav{display:flex;justify-content:space-between;gap:12px;padding:0 16px 18px;max-width:560px;width:100%;margin:0 auto}
+.gnav .tonal{min-height:48px;padding:0 20px;font-size:15px}
+
+/* ---------- thanh báo đã tải xong bản cập nhật ---------- */
+#updateBar{position:absolute;left:12px;right:12px;bottom:16px;z-index:60;display:flex;align-items:center;gap:12px;
+  background:var(--toast-bg);color:var(--toast-text);border-radius:16px;padding:10px 10px 10px 16px;font-size:14px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#updateBar[hidden]{display:none}
+#updateBar span{flex:1}
+#updateBar button{min-height:38px;padding:0 16px;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;font-size:14px}
+
 /* công tắc */
 .sw{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;min-height:40px}
 .sw input{position:absolute;opacity:0;pointer-events:none}
@@ -212,6 +238,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .sheet-list{overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:2px}
 .opt{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:0 14px;border-radius:16px;text-align:left;font-size:16px;font-weight:500}
 .opt:active{background:var(--surface-2)}
+.opt .flag{font-size:22px;line-height:1;flex:none}
+.opt .oname{flex:1;min-width:0}
 .opt .cnt{margin-left:auto;color:var(--muted);font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums}
 .opt .oc{width:22px;height:22px;color:var(--primary);flex:none;visibility:hidden}
 .opt.on{background:var(--primary-soft);color:var(--primary-text);font-weight:700}
@@ -229,6 +257,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 
 /* ---------- máy tính bảng / màn hình rộng ---------- */
 @media (min-width:900px){
+  #updateBar{left:auto;right:24px;width:420px}
   .legal-scroll{max-width:720px;width:100%;margin:0 auto}
   #app{display:grid;grid-template-columns:300px 410px 1fr}
   #scrim{display:none}

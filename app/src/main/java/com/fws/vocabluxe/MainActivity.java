@@ -20,12 +20,23 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.SystemBarStyle;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.webkit.WebViewAssetLoader;
+
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
+import com.google.android.play.core.install.InstallStateUpdatedListener;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallStatus;
+import com.google.android.play.core.install.model.UpdateAvailability;
 
 import org.json.JSONObject;
 
@@ -45,8 +56,8 @@ import java.util.concurrent.Executors;
 
 /**
  * VocabLuxe: toàn bộ giao diện (sáng/tối) chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
- * Cầu nối AndroidBridge làm 4 việc: đọc giọng bằng TextToSpeech của máy, gọi HTTPS tới đúng 4 dịch vụ tra cứu,
- * đồng bộ màu thanh hệ thống với giao diện sáng/tối, và mở trang Chính sách quyền riêng tư.
+ * Cầu nối AndroidBridge: đọc giọng bằng TextToSpeech của máy (khởi động sẵn để phát âm ngay), gọi HTTPS tới đúng 4 dịch vụ tra cứu,
+ * đồng bộ màu thanh hệ thống với giao diện sáng/tối, mở trang Chính sách quyền riêng tư và cập nhật trong ứng dụng (Google Play, kiểu Flexible).
  */
 public class MainActivity extends ComponentActivity {
 
@@ -56,8 +67,8 @@ public class MainActivity extends ComponentActivity {
     private static final int BG_LIGHT = 0xFFF4F5FB;
     private static final int BG_DARK = 0xFF0E1018;
     private static final int MAX_BODY = 2 * 1024 * 1024;
-    /** Trang Chính sách quyền riêng tư (GitHub Pages, thư mục docs/privacy-policy). ĐỔI nếu tên tài khoản / kho mã khác. */
-    private static final String PRIVACY_URL = "https://lequang0996.github.io/VocabLuxeAndroid/privacy-policy/";
+    /** Trang Chính sách quyền riêng tư (GitHub Pages, file docs/privacy-policy.html). ĐỔI nếu tên tài khoản / kho mã khác. */
+    private static final String PRIVACY_URL = "https://lequang0996.github.io/VocabLuxeAndroid/privacy-policy.html";
     private static final String UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) "
             + "Chrome/124.0 Mobile Safari/537.36 VocabLuxe/1.0";
     /** Chỉ cho phép gọi các dịch vụ tra cứu này. */
@@ -69,8 +80,19 @@ public class MainActivity extends ComponentActivity {
     private TextToSpeech tts;
     private boolean ttsReady = false;
     private boolean ttsInitializing = false;
-    private String pendingLang, pendingText;
+    private String pendingLang, pendingText, pendingWarm, currentLang;
     private boolean pendingSlow;
+
+    // Cập nhật trong ứng dụng (Google Play In-App Updates – Flexible)
+    private AppUpdateManager updateManager;
+    private ActivityResultLauncher<IntentSenderRequest> updateLauncher;
+    private boolean updateAsked = false, updateDownloaded = false;
+    private final InstallStateUpdatedListener installListener = state -> {
+        if (state.installStatus() == InstallStatus.DOWNLOADED) {
+            updateDownloaded = true;
+            js("window.__updateReady && window.__updateReady()");
+        }
+    };
     private final ExecutorService net = Executors.newFixedThreadPool(4);
     private OnBackPressedCallback backCallback;
 
@@ -97,6 +119,8 @@ public class MainActivity extends ComponentActivity {
         });
 
         setupWebView();
+        initTts();          // khởi động sẵn bộ đọc giọng: lần bấm đầu tiên phát âm ngay, không phải chờ
+        initInAppUpdate();
 
         // Nút Back / cử chỉ Back: chỉ bật khi giao diện web đang có thứ để đóng (chi tiết từ, menu chủ đề);
         // còn lại để hệ thống xử lý (thoát app / hoạt ảnh quay về màn hình chính).
@@ -180,7 +204,14 @@ public class MainActivity extends ComponentActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        checkForUpdate();
+    }
+
+    @Override
     protected void onDestroy() {
+        if (updateManager != null) { try { updateManager.unregisterListener(installListener); } catch (Exception ignored) { /* bỏ qua */ } }
         net.shutdownNow();
         if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
         if (web != null) {
@@ -204,8 +235,17 @@ public class MainActivity extends ComponentActivity {
         runOnUiThread(() -> { if (web != null) web.evaluateJavascript(code, null); });
     }
 
-    private void jsError(String fn, String msg) {
-        js("window." + fn + " && window." + fn + "(" + JSONObject.quote(msg) + ")");
+    /** Báo lỗi cho giao diện bằng mã (giao diện tự dịch ra ngôn ngữ đang chọn). */
+    private void ttsError(String code, String arg) {
+        js("window.__ttsError && window.__ttsError(" + JSONObject.quote(code) + "," + JSONObject.quote(arg == null ? "" : arg) + ")");
+    }
+
+    /** Chỉ gọi setLanguage khi đổi ngôn ngữ (mỗi lần gọi tốn hàng trăm ms). Trả về mã kết quả của TextToSpeech. */
+    private int ensureLanguage(String langTag) {
+        if (langTag.equals(currentLang)) return TextToSpeech.LANG_AVAILABLE;
+        int r = tts.setLanguage(Locale.forLanguageTag(langTag));
+        if (r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED) currentLang = langTag;
+        return r;
     }
 
     private void doSpeak(String langTag, String text, boolean slow) {
@@ -214,11 +254,9 @@ public class MainActivity extends ComponentActivity {
             if (!ttsInitializing) initTts();
             return;
         }
-        Locale loc = Locale.forLanguageTag(langTag);
-        int r = tts.setLanguage(loc);
+        int r = ensureLanguage(langTag);
         if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-            jsError("__ttsError", "Máy chưa có giọng đọc " + loc.getDisplayLanguage(new Locale("vi"))
-                    + ". Vào Cài đặt > Chuyển văn bản thành giọng nói để tải thêm.");
+            ttsError("missing", langTag);
             if (r == TextToSpeech.LANG_MISSING_DATA) {
                 try {
                     Intent i = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
@@ -233,6 +271,7 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void initTts() {
+        if (tts != null || ttsInitializing) return;
         ttsInitializing = true;
         tts = new TextToSpeech(getApplicationContext(), status -> {
             ttsInitializing = false;
@@ -243,13 +282,51 @@ public class MainActivity extends ComponentActivity {
                     boolean sl = pendingSlow;
                     pendingLang = pendingText = null;
                     doSpeak(l, t, sl);
+                } else if (pendingWarm != null) {
+                    String l = pendingWarm;
+                    pendingWarm = null;
+                    ensureLanguage(l);
                 }
             } else {
                 ttsReady = false;
                 tts = null;
-                jsError("__ttsError", "Không khởi động được bộ đọc giọng của máy.");
+                ttsError("init", "");
             }
         });
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Cập nhật trong ứng dụng: Google Play In-App Updates (Flexible)      //
+    //  Chỉ hoạt động với bản cài từ Google Play; lỗi gì cũng bỏ qua êm.     //
+    // ------------------------------------------------------------------ //
+    private void initInAppUpdate() {
+        try {
+            updateLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> { /* người dùng từ chối: không làm gì */ });
+            updateManager = AppUpdateManagerFactory.create(this);
+            updateManager.registerListener(installListener);
+        } catch (Throwable t) {
+            updateManager = null;
+        }
+    }
+
+    private void checkForUpdate() {
+        if (updateManager == null) return;
+        try {
+            updateManager.getAppUpdateInfo().addOnSuccessListener(info -> {
+                if (info.installStatus() == InstallStatus.DOWNLOADED) {
+                    updateDownloaded = true;
+                    js("window.__updateReady && window.__updateReady()");
+                    return;
+                }
+                if (!updateAsked && info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                        && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                    updateAsked = true; // chỉ hỏi một lần mỗi lần mở app
+                    try {
+                        updateManager.startUpdateFlow(info, updateLauncher, AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build());
+                    } catch (Exception ignored) { /* bỏ qua */ }
+                }
+            });
+        } catch (Throwable ignored) { /* bỏ qua */ }
     }
 
     // ------------------------------------------------------------------ //
@@ -262,6 +339,28 @@ public class MainActivity extends ComponentActivity {
             runOnUiThread(() -> doSpeak(langTag, text, slow));
         }
 
+        /** Khởi động sẵn bộ đọc giọng và nạp sẵn ngôn ngữ để lần phát âm đầu tiên không bị trễ. */
+        @JavascriptInterface
+        public void warmTts(final String langTag) {
+            if (langTag == null || langTag.length() > 20) return;
+            runOnUiThread(() -> {
+                if (tts != null && ttsReady) ensureLanguage(langTag);
+                else { pendingWarm = langTag; initTts(); }
+            });
+        }
+
+        /** Bản cập nhật đã tải xong và đang chờ khởi động lại? */
+        @JavascriptInterface
+        public boolean updateReady() {
+            return updateDownloaded;
+        }
+
+        /** Cài bản cập nhật đã tải (ứng dụng sẽ khởi động lại). */
+        @JavascriptInterface
+        public void completeUpdate() {
+            runOnUiThread(() -> { if (updateManager != null) updateManager.completeUpdate(); });
+        }
+
         /** Mở trang Chính sách quyền riêng tư bằng trình duyệt (chỉ đúng địa chỉ cố định ở trên). */
         @JavascriptInterface
         public void openPrivacyPolicy() {
@@ -269,7 +368,7 @@ public class MainActivity extends ComponentActivity {
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)));
                 } catch (Exception e) {
-                    jsError("__ttsError", "Không mở được trình duyệt.");
+                    ttsError("browser", "");
                 }
             });
         }

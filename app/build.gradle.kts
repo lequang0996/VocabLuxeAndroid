@@ -56,6 +56,7 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.activity:activity:1.9.3")
     implementation("androidx.core:core:1.15.0")
+    implementation("com.google.android.play:app-update:2.1.0")   // Cập nhật trong ứng dụng (In-App Updates, kiểu Flexible)
 
     // Sửa lỗi "Duplicate class kotlin.collections.jdk8..." khi build:
     // từ Kotlin 1.8, kotlin-stdlib-jdk7/jdk8 đã gộp vào kotlin-stdlib. Một thư viện phụ thuộc vẫn kéo bản cũ 1.6.21

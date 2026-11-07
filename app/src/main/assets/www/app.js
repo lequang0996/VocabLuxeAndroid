@@ -5,20 +5,18 @@
   const $ = (id) => document.getElementById(id);
   const ANDROID = window.AndroidBridge || null;
   const ROW_H = 66;
-  const ALL_LEVELS = 'Mọi cấp';
+  const ALL_LEVELS = '__all__';
   const ic = (n, cls) => '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
 
   const LANGS = {
-    en: { code: 'en', name: 'Tiếng Anh', file: 'en.json', tts: 'en-US', gtx: 'en', tatoeba: 'eng', htmlLang: 'en',
-          subLabel: 'LOẠI TỪ', levels: ['A1', 'A2', 'B1', 'B2', 'C1'] },
-    zh: { code: 'zh', name: 'Tiếng Trung', file: 'zh.json', tts: 'zh-CN', gtx: 'zh-CN', tatoeba: 'cmn', htmlLang: 'zh-CN',
-          subLabel: 'PINYIN', levels: ['HSK1', 'HSK2', 'HSK3', 'HSK4', 'HSK5', 'HSK6'] },
+    en: { code: 'en', file: 'en.json', tts: 'en-US', gtx: 'en', tatoeba: 'eng', htmlLang: 'en',
+          levels: ['A1', 'A2', 'B1', 'B2', 'C1'] },
+    zh: { code: 'zh', file: 'zh.json', tts: 'zh-CN', gtx: 'zh-CN', tatoeba: 'cmn', htmlLang: 'zh-CN',
+          levels: ['HSK1', 'HSK2', 'HSK3', 'HSK4', 'HSK5', 'HSK6'] },
   };
   const ORDER = ['en', 'zh'];
   const POS_NAMES = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition', pron: 'pronoun',
     conj: 'conjunction', exclam: 'interjection', det: 'determiner', modal: 'verb', auxiliary: 'verb', number: 'noun', noun: 'noun' };
-  const POS_VI = { noun: 'danh từ', verb: 'động từ', adjective: 'tính từ', adverb: 'trạng từ', preposition: 'giới từ',
-    pronoun: 'đại từ', conjunction: 'liên từ', interjection: 'thán từ', determiner: 'từ hạn định' };
 
   /* ------------------------------------------------------------------ */
   /*  Tiện ích chuỗi                                                     */
@@ -68,8 +66,24 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bỏ qua */ } },
   };
-  const state = Object.assign({ auto_play: false, review: false, lang: 'en', theme: null }, ls.get('vl_state', {}));
+  const state = Object.assign({ auto_play: true, review: false, lang: 'en', theme: null, ui: null, guided: false }, ls.get('vl_state', {}));
   const saveState = () => ls.set('vl_state', state);
+  if (!state.ap2) { state.auto_play = true; state.ap2 = 1; saveState(); } // "Tự phát âm" mặc định BẬT (áp dụng một lần cho bản cài cũ)
+
+  /* ---- Đa ngôn ngữ giao diện (i18n.js) ---- */
+  const I = window.I18N;
+  const detectUi = () => { const p = String(navigator.language || 'en').toLowerCase().split('-')[0]; return I.codes.includes(p) ? p : 'en'; };
+  let UI = I.codes.includes(state.ui) ? state.ui : detectUi();
+  const L = (k, vars) => {
+    let s = (I.T[UI] && I.T[UI][k] != null) ? I.T[UI][k] : (I.T.en[k] != null ? I.T.en[k] : k);
+    if (vars) s = s.replace(/\{(\w+)\}/g, (m, n) => (vars[n] != null ? vars[n] : m));
+    return s;
+  };
+  const fmtN = (n) => Number(n).toLocaleString(I.LOC[UI]);
+  const langName = (c) => L('lang_' + c);
+  const posLabel = (n) => ((I.POS[UI] || I.POS.en)[n]) || n;
+  const topicName = (id) => ((I.TOPIC[UI] || {})[id]) || ((TOPIC_MAP[id] || {}).name) || L('topic');
+  const hayOf = (w) => fold([w.w, w.py, UI === 'vi' ? w.mean : '', w.pos, UI === 'vi' ? w.hv : ''].filter(Boolean).join(' '));
 
   /* ---- Giao diện Sáng / Tối: lần đầu theo hệ thống, sau đó nhớ lựa chọn của người dùng ---- */
   const systemDark = () => {
@@ -82,7 +96,7 @@
     const mc = document.querySelector('meta[name=theme-color]');
     if (mc) mc.setAttribute('content', t === 'dark' ? '#0E1018' : '#F4F5FB');
     const b = document.getElementById('btnTheme');
-    if (b) b.setAttribute('aria-label', t === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
+    if (b) b.setAttribute('aria-label', L(t === 'dark' ? 'toLight' : 'toDark'));
     if (persist) { state.theme = t; saveState(); }
     try { if (ANDROID && ANDROID.setTheme) ANDROID.setTheme(t === 'dark'); } catch (e) { /* bỏ qua */ }
   }
@@ -115,13 +129,13 @@
     pending.delete(id);
     clearTimeout(p.t);
     if (status >= 200 && status < 300) p.res(body);
-    else { const e = new Error(status > 0 ? 'HTTP ' + status : (body || 'Không kết nối được')); e.status = status; p.rej(e); }
+    else { const e = new Error(status > 0 ? 'HTTP ' + status : (body || 'Network error')); e.status = status; p.rej(e); }
   };
   function httpGet(url, timeout = 12000) {
     if (ANDROID) {
       return new Promise((res, rej) => {
         const id = ++netId;
-        const t = setTimeout(() => { pending.delete(id); rej(new Error('Hết thời gian chờ')); }, timeout + 4000);
+        const t = setTimeout(() => { pending.delete(id); rej(new Error('Timeout')); }, timeout + 4000);
         pending.set(id, { res, rej, t });
         try { ANDROID.get(id, url); } catch (e) { pending.delete(id); clearTimeout(t); rej(e); }
       });
@@ -153,19 +167,19 @@
         if (e && typeof e[0] === 'string' && e.length > 1 && Array.isArray(e[1])) byPos[e[0].toLowerCase()] = e[1].filter((t) => typeof t === 'string');
       }
     }
-    if (!main) throw new Error('Google trả về rỗng');
+    if (!main) throw new Error('Empty response');
     return { main, byPos };
   }
   async function myMemoryTranslate(text, sl, tl = 'vi') {
     const j = await getJson('https://api.mymemory.translated.net/get', { q: text, langpair: sl + '|' + tl });
     const main = (((j.responseData || {}).translatedText) || '').trim();
-    if (!main || !['200', 'undefined', 'null'].includes(String(j.responseStatus))) throw new Error('MyMemory: ' + (j.responseDetails || 'rỗng'));
+    if (!main || !['200', 'undefined', 'null'].includes(String(j.responseStatus))) throw new Error('MyMemory: ' + (j.responseDetails || 'empty'));
     return { main, byPos: {} };
   }
-  async function translateVi(text, sl) {
+  async function translateTo(text, sl, tl) {
     const errs = [];
     for (const [name, fn] of [['Google', gtxTranslate], ['MyMemory', myMemoryTranslate]]) {
-      try { return await fn(text, sl); } catch (e) { errs.push(name + ': ' + String(e.message || e).slice(0, 70)); }
+      try { return await fn(text, sl, tl); } catch (e) { errs.push(name + ': ' + String(e.message || e).slice(0, 70)); }
     }
     throw new Error(errs.join(' | '));
   }
@@ -178,7 +192,7 @@
     const seen = new Set(), mean = [];
     for (const p of primary) { const k = p.toLowerCase(); if (!seen.has(k)) { seen.add(k); mean.push(p); } }
     const more = Object.entries(by).filter(([n, terms]) => !wanted.includes(n) && terms.length)
-      .map(([n, terms]) => (POS_VI[n] || n) + ': ' + terms.slice(0, 3).join(', '));
+      .map(([n, terms]) => posLabel(n) + ': ' + terms.slice(0, 3).join(', '));
     return { mean: mean.slice(0, 4).join('; ') || main, more: more.slice(0, 3).join(' · ') };
   }
   async function dictLookup(word) {
@@ -198,35 +212,42 @@
     return { phon, defs: defs.slice(0, 10) };
   }
   const flatten = (x) => (Array.isArray(x) ? x.flatMap(flatten) : (x && typeof x === 'object' ? [x] : []));
-  async function tatoebaSearch(word, code, needVi) {
+  /* Ngôn ngữ đích của nghĩa / bản dịch câu ví dụ = ngôn ngữ giao diện đang chọn */
+  const TL = { vi: 'vi', en: 'en', zh: 'zh-CN', es: 'es', pt: 'pt', ru: 'ru', ja: 'ja', ko: 'ko' };
+  const TATO = { vi: 'vie', en: 'eng', zh: 'cmn', es: 'spa', pt: 'por', ru: 'rus', ja: 'jpn', ko: 'kor' };
+  function target(lang) {
+    if (UI !== lang.code) return { tl: TL[UI], tat: TATO[UI], def: false };
+    // đang học đúng ngôn ngữ của giao diện: tiếng Anh -> dùng định nghĩa tiếng Anh; tiếng Trung -> dịch sang tiếng Anh
+    return lang.code === 'en' ? { tl: null, tat: null, def: true } : { tl: 'en', tat: 'eng', def: false };
+  }
+  const tkey = (tg) => (tg.def ? 'def:' : (tg.tl === 'vi' ? '' : tg.tl + ':'));
+
+  async function tatoebaSearch(word, code, tg, needTr) {
     const p = { from: LANGS[code].tatoeba, query: word, orphans: 'no', unapproved: 'no', sort: 'relevance' };
-    if (needVi) { p.to = 'vie'; p.trans_filter = 'limit'; }
+    if (needTr && tg.tat) { p.to = tg.tat; p.trans_filter = 'limit'; }
     return (await getJson('https://tatoeba.org/en/api_v0/search', p, 14000)).results || [];
   }
-  async function tatoebaExample(word, code) {
+  async function tatoebaExample(word, code, tg) {
     const cjk = code !== 'en';
     const base = word.replace(/^[～~]+/, '') || word;
     const rx = cjk ? null : new RegExp('\\b' + escRx(word) + '\\w{0,3}\\b', 'i');
     const [lo, hi] = cjk ? [5, 50] : [22, 110];
     const stems = [word];
-    if (cjk) {
-      const core = base;
-      if (core !== word && core) stems.push(core);
-    }
-    for (const needVi of [true, false]) {
+    if (cjk && base !== word && base) stems.push(base);
+    for (const needTr of tg.tat ? [true, false] : [false]) {
       let results;
-      try { results = await tatoebaSearch(base, code, needVi); } catch (e) { if (needVi) continue; throw e; }
+      try { results = await tatoebaSearch(base, code, tg, needTr); } catch (e) { if (needTr) continue; throw e; }
       const cands = [];
       for (const r of results) {
-        const t = (r.text || '').trim();
-        if (t.length < lo || t.length > hi) continue;
+        const x = (r.text || '').trim();
+        if (x.length < lo || x.length > hi) continue;
         let score;
-        if (cjk) { if (!stems.some((s) => s && t.includes(s))) continue; score = t.includes(base) ? 0 : 15; }
-        else { if (!rx.test(t)) continue; score = 0; }
-        const d = flatten(r.translations || []).find((x) => x.lang === 'vie' && x.text);
-        const vi = d ? d.text.trim() : '';
-        score += Math.abs(t.length - (cjk ? 22 : 55)) - (vi ? 40 : 0);
-        cands.push([score, t, vi]);
+        if (cjk) { if (!stems.some((s) => s && x.includes(s))) continue; score = x.includes(base) ? 0 : 15; }
+        else { if (!rx.test(x)) continue; score = 0; }
+        const d = tg.tat ? flatten(r.translations || []).find((y) => y.lang === tg.tat && y.text) : null;
+        const tr = d ? d.text.trim() : '';
+        score += Math.abs(x.length - (cjk ? 22 : 55)) - (tr ? 40 : 0);
+        cands.push([score, x, tr]);
       }
       if (cands.length) { cands.sort((a, b) => a[0] - b[0]); return { ex: cands[0][1], vi: cands[0][2] }; }
     }
@@ -243,59 +264,70 @@
   }
   const queryOf = (w) => w.w.split(',')[0].trim();
   const keyTail = (w) => w.w + '|' + (w.pos || w.py || '');
-  const partTr = (lang, w) => cached('tr:' + lang.code + ':' + keyTail(w), async () => {
-    const tr = await translateVi(queryOf(w), lang.gtx);
+  const partTr = (lang, w, tg) => cached('tr:' + lang.code + ':' + tkey(tg) + keyTail(w), async () => {
+    const tr = await translateTo(queryOf(w), lang.gtx, tg.tl);
     return lang.code === 'en' ? buildMeaning(tr, w.pos || '') : { mean: tr.main, more: '' };
   });
   const partDic = (w) => cached('dic:en:' + w.w.toLowerCase(), () => dictLookup(queryOf(w)));
-  const partEx = (lang, w) => cached('ex2:' + lang.code + ':' + w.w.toLowerCase() + '|' + (w.pos || w.py || ''), async () => {
-    const ex = await tatoebaExample(queryOf(w), lang.code);
+  const partEx = (lang, w, tg) => cached('ex2:' + lang.code + ':' + tkey(tg) + w.w.toLowerCase() + '|' + (w.pos || w.py || ''), async () => {
+    const ex = await tatoebaExample(queryOf(w), lang.code, tg);
     if (!isEmpty(ex)) {
-      if (!ex.vi) ex.vi = (await translateVi(ex.ex, lang.gtx)).main;
+      if (!ex.vi && tg.tl) ex.vi = (await translateTo(ex.ex, lang.gtx, tg.tl)).main;
       return ex;
     }
     if (lang.code === 'en') {
       const d = await partDic(w);
       const names = posNames(w.pos);
       const pool = d.defs.filter((x) => x.ex).sort((a, b) => (names.includes(a.pos) ? 0 : 1) - (names.includes(b.pos) ? 0 : 1));
-      if (pool.length) return { ex: pool[0].ex, vi: (await translateVi(pool[0].ex, 'en')).main };
+      if (pool.length) return { ex: pool[0].ex, vi: tg.tl ? (await translateTo(pool[0].ex, 'en', tg.tl)).main : '' };
     }
     return {};
   }, false);
+  // dịch câu ví dụ có sẵn (tiếng Trung) sang ngôn ngữ giao diện khi không phải tiếng Việt
+  const partExTr = (w, tg) => cached('exT:zh:' + tg.tl + ':' + w.id, async () => ({ t: (await translateTo(w.ex, 'zh-CN', tg.tl)).main }));
 
   const localPhon = (code, w) => w.py || '';
-  const localMore = (code, w) => (code === 'zh' && w.hv ? 'Âm Hán Việt: ' + w.hv : '');
+  const localMore = (code, w) => (code === 'zh' && UI === 'vi' && w.hv ? L('hv') + ': ' + w.hv : '');
 
   async function fetchInfo(lang, w, onPart) {
-    const code = lang.code;
+    const code = lang.code, tg = target(lang);
+    const bundled = code === 'zh' && UI === 'vi'; // nghĩa + ví dụ tiếng Việt có sẵn trong dữ liệu
     const out = { mean: '', more: '', phon: '', def_en: '', ex: '', ex_phon: '', ex_vi: '', failed: [], done: [], err: '' };
     const snap = () => ({ ...out, failed: [...out.failed], done: [...out.done] });
     const tasks = [];
     const run = (kind, p) => tasks.push(p.then((r) => ({ kind, r }), (e) => ({ kind, e })));
     if (code === 'en') {
-      run('tr', partTr(lang, w)); run('dic', partDic(w)); run('ex', partEx(lang, w));
+      if (tg.def) out.done.push('tr'); else run('tr', partTr(lang, w, tg));
+      run('dic', partDic(w)); run('ex', partEx(lang, w, tg));
     } else {
-      Object.assign(out, { mean: w.mean || '', more: localMore(code, w), phon: localPhon(code, w),
-        ex: w.ex || '', ex_phon: w.ex_py || '', ex_vi: w.ex_vi || '' });
+      Object.assign(out, { mean: bundled ? (w.mean || '') : '', more: localMore(code, w), phon: localPhon(code, w),
+        ex: w.ex || '', ex_phon: w.ex_py || '', ex_vi: bundled ? (w.ex_vi || '') : '' });
       out.done.push('dic');
-      if (out.mean) out.done.push('tr'); else run('tr', partTr(lang, w));
-      if (out.ex) out.done.push('ex'); else run('ex', partEx(lang, w));
+      if (out.mean) out.done.push('tr'); else run('tr', partTr(lang, w, tg));
+      if (out.ex) { out.done.push('ex'); if (!out.ex_vi && tg.tl) run('exTr', partExTr(w, tg)); } else run('ex', partEx(lang, w, tg));
       if (onPart) onPart(snap());
     }
     const names = posNames(w.pos);
-    await Promise.all(tasks.map(async (t) => {
-      const { kind, r, e } = await t;
-      if (e) { out.failed.push(kind); out.err = (out.err ? out.err + ' ' : '') + String(e.message || e).slice(0, 160); }
-      else if (kind === 'tr') {
+    await Promise.all(tasks.map(async (job) => {
+      const { kind, r, e } = await job;
+      if (e) {
+        out.failed.push(kind);
+        if (kind === 'dic' && tg.def) out.failed.push('tr');
+        out.err = (out.err ? out.err + ' ' : '') + String(e.message || e).slice(0, 160);
+      } else if (kind === 'tr') {
         out.mean = r.mean || '';
         if (code === 'en') out.more = r.more || '';
-        else if (w.auto || !w.mean) out.more = (out.more ? out.more + '   ·   ' : '') + 'Nghĩa dịch tự động';
+        else if (!bundled || w.auto || !w.mean) out.more = (out.more ? out.more + '   ·   ' : '') + L('autoTrans');
       } else if (kind === 'dic') {
         out.phon = r.phon || '';
         const defs = r.defs || [];
         const pick = defs.find((d) => names.includes(d.pos)) || defs[0];
-        out.def_en = pick ? pick.def : '';
+        if (tg.def) {
+          out.mean = pick ? pick.def : '';
+          if (!out.mean) { out.failed.push('tr'); out.err = out.err || 'No definition'; }
+        } else out.def_en = pick ? pick.def : '';
       } else if (kind === 'ex') { out.ex = r.ex || ''; out.ex_vi = r.vi || ''; }
+      else if (kind === 'exTr') out.ex_vi = (r && r.t) || '';
       out.done.push(kind);
       if (onPart) onPart(snap());
     }));
@@ -313,15 +345,21 @@
   function speak(lang, text, slow) {
     const t = cleanTts(text);
     if (!t) return;
-    if (ANDROID) { try { ANDROID.speak(lang.tts, t, !!slow); } catch (e) { say('Không phát được âm thanh.', 6000); } return; }
+    if (ANDROID) { try { ANDROID.speak(lang.tts, t, !!slow); } catch (e) { say(L('ttsFail'), 6000); } return; }
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(t);
       u.lang = lang.tts; u.rate = slow ? 0.6 : 1;
       speechSynthesis.speak(u);
-    } else say('Thiết bị không hỗ trợ phát âm.', 6000);
+    } else say(L('ttsNone'), 6000);
   }
-  window.__ttsError = (msg) => say(msg, 9000);
+  window.__ttsError = (code, arg) => {
+    if (code === 'missing') say(L('ttsMissing', { lang: langName(String(arg || '').toLowerCase().startsWith('zh') ? 'zh' : 'en') }), 9000);
+    else if (code === 'init') say(L('ttsInit'), 9000);
+    else if (code === 'browser') say(L('ttsBrowser'), 6000);
+  };
+  // khởi động sẵn bộ đọc giọng + nạp sẵn ngôn ngữ để lần bấm đầu tiên phát âm ngay
+  function warmTts(lang) { try { if (ANDROID && ANDROID.warmTts) ANDROID.warmTts(lang.tts); } catch (e) { /* bỏ qua */ } }
 
   /* ------------------------------------------------------------------ */
   /*  Trạng thái giao diện                                               */
@@ -348,9 +386,10 @@
     box.innerHTML = '';
     for (const c of ORDER) {
       const b = document.createElement('button');
-      b.textContent = LANGS[c].name;
+      b.textContent = langName(c);
       b.dataset.code = c;
       b.addEventListener('click', () => loadLanguage(c));
+      b.classList.toggle('on', c === S.lang.code);
       box.appendChild(b);
     }
   }
@@ -358,21 +397,22 @@
     const cfg = LANGS[code];
     const my = ++S.loading;
     if (!dataCache[code]) {
-      say('Đang mở dữ liệu ' + cfg.name + '…', 15000);
+      say(L('loadingData', { lang: langName(code) }), 15000);
       try {
         const r = await fetch('data/' + cfg.file);
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         for (const w of data.words) {
           for (const k of ['w', 'py', 'hv', 'mean', 'ex', 'ex_py', 'ex_vi', 'pos', 'note']) if (typeof w[k] === 'string') w[k] = w[k].normalize('NFC');
-          w._h = fold([w.w, w.py, w.mean, w.pos, w.hv].filter(Boolean).join(' '));
+          w._h = hayOf(w);
         }
         dataCache[code] = data;
-      } catch (e) { say('Không mở được dữ liệu ' + cfg.name + ': ' + e.message, 8000); return; }
+      } catch (e) { say(L('loadFail', { lang: langName(code), err: e.message }), 8000); return; }
     }
     if (my !== S.loading) return;
     const data = dataCache[code];
     S.lang = cfg;
+    warmTts(cfg);
     S.words = data.words;
     S.levels = data.levels && data.levels.length ? data.levels : cfg.levels;
     state.lang = code; saveState();
@@ -393,8 +433,8 @@
   function rebuildTopics() {
     const counts = {};
     for (const w of S.words) counts[w.topic] = (counts[w.topic] || 0) + 1;
-    const rows = [{ id: 'all', name: 'Tất cả chủ đề', sym: null, n: S.words.length }];
-    for (const t of TOPICS) if (counts[t.id]) rows.push({ id: t.id, name: t.name, sym: t.sym, n: counts[t.id] });
+    const rows = [{ id: 'all', name: L('allTopics'), sym: null, n: S.words.length }];
+    for (const tp of TOPICS) if (counts[tp.id]) rows.push({ id: tp.id, name: topicName(tp.id), sym: tp.sym, n: counts[tp.id] });
     const box = $('topics');
     box.innerHTML = rows.map((r) => '<button class="trow" data-t="' + esc(r.id) + '"><span class="tsym">' + (r.sym ? esc(r.sym) + '\uFE0E' : ic('grid')) + '</span><span class="tname">' +
       esc(r.name) + '</span><span class="tn">' + r.n + '</span></button>').join('');
@@ -419,10 +459,9 @@
       if (q && !w._h.includes(q)) continue;
       res.push(w);
     }
-    const t = S.topic === 'all' ? { name: 'Tất cả chủ đề' } : (TOPIC_MAP[S.topic] || { name: 'Chủ đề' });
     S.practice = false;
     highlightTopic(true);
-    showList(res, t.name, res.length.toLocaleString('vi-VN') + ' từ');
+    showList(res, S.topic === 'all' ? L('allTopics') : topicName(S.topic), L('wordsN', { n: fmtN(res.length) }));
   }
 
   function showList(res, title, subtitle) {
@@ -447,7 +486,7 @@
   function renderRows() {
     const list = $('list'), rows = $('rows');
     rows.style.height = S.view.length * ROW_H + 'px';
-    if (!S.view.length) { rows.style.height = 'auto'; rows.innerHTML = '<div class="empty">Không có từ nào khớp bộ lọc.<br>Thử bỏ bớt bộ lọc hoặc đổi từ khóa.</div>'; return; }
+    if (!S.view.length) { rows.style.height = 'auto'; rows.innerHTML = '<div class="empty">' + esc(L('emptyA')) + '<br>' + esc(L('emptyB')) + '</div>'; return; }
     const top = list.scrollTop, h = list.clientHeight || 600;
     const a = Math.max(0, Math.floor(top / ROW_H) - 8), b = Math.min(S.view.length, Math.ceil((top + h) / ROW_H) + 8);
     let html = '';
@@ -459,7 +498,7 @@
   window.addEventListener('resize', renderRows);
   $('rows').addEventListener('click', (e) => {
     const r = e.target.closest('.row');
-    if (r) selectIndex(parseInt(r.dataset.i, 10), { open: true });
+    if (r) selectIndex(parseInt(r.dataset.i, 10), { open: true, user: true });
   });
   function scrollToIndex(i) {
     const list = $('list'), top = i * ROW_H, h = list.clientHeight;
@@ -469,7 +508,7 @@
 
   function updateStats() {
     const code = S.lang.code, n = progOf(code).learned.size, total = Math.max(1, S.words.length);
-    $('stats').textContent = 'Đã thuộc ' + n.toLocaleString('vi-VN') + ' / ' + S.words.length.toLocaleString('vi-VN') + ' từ · ' + Math.round((100 * n) / total) + '%';
+    $('stats').textContent = L('statsFmt', { n: fmtN(n), total: fmtN(S.words.length), p: Math.round((100 * n) / total) });
     $('barFill').style.width = Math.min(100, (100 * n) / total) + '%';
   }
 
@@ -477,13 +516,13 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function openDetail() { body.classList.add('detail-open'); syncBack(); }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
   function openDrawer() { body.classList.add('drawer-open'); syncBack(); }
-  function openLegal() { closeDrawer(); body.classList.add('legal-open'); $('legalScroll').scrollTop = 0; syncBack(); }
+  function openLegal() { closeDrawer(); renderLegal(); body.classList.add('legal-open'); $('legalScroll').scrollTop = 0; syncBack(); }
   function closeLegal() { body.classList.remove('legal-open'); syncBack(); }
   function closeDrawer() { body.classList.remove('drawer-open'); syncBack(); }
 
@@ -491,7 +530,7 @@
   function updateLevelBtn() {
     const b = $('btnLevel');
     b.hidden = !S.levels.length;
-    $('levelText').textContent = S.level;
+    $('levelText').textContent = S.level === ALL_LEVELS ? L('allLevels') : S.level;
     b.classList.toggle('active', S.level !== ALL_LEVELS);
   }
   function openSheet() {
@@ -499,24 +538,82 @@
     const cnt = {};
     for (const w of S.words) cnt[w.lvl] = (cnt[w.lvl] || 0) + 1;
     const opts = [[ALL_LEVELS, S.words.length]].concat(S.levels.map((l) => [l, cnt[l] || 0]));
+    $('sheetTitle').textContent = L('chooseLevel');
     $('sheetList').innerHTML = opts.map(([l, n]) => '<button class="opt' + (l === S.level ? ' on' : '') + '" data-v="' + esc(l) + '">' +
-      '<span>' + esc(l) + '</span><span class="cnt">' + n.toLocaleString('vi-VN') + ' từ</span>' + ic('check', 'oc') + '</button>').join('');
+      '<span>' + esc(l === ALL_LEVELS ? L('allLevels') : l) + '</span><span class="cnt">' + L('wordsN', { n: fmtN(n) }) + '</span>' + ic('check', 'oc') + '</button>').join('');
     body.classList.add('sheet-open'); syncBack();
   }
   function closeSheet() { body.classList.remove('sheet-open'); syncBack(); }
+
+  /* ---- Chọn ngôn ngữ giao diện: "cờ - Tên bản ngữ (tên theo ngôn ngữ đang dùng)" ---- */
+  function openLangSheet() {
+    closeDrawer();
+    $('sheetTitle').textContent = '🌐 ' + L('language');
+    $('sheetList').innerHTML = I.ORDER.map((c) => '<button class="opt' + (c === UI ? ' on' : '') + '" data-ui="' + c + '">' +
+      '<span class="flag" aria-hidden="true">' + I.FLAG[c] + '</span><span class="oname">- ' + esc(I.NATIVE[c]) +
+      (c === UI ? '' : ' (' + esc(I.NAMES[UI][c]) + ')') + '</span>' + ic('check', 'oc') + '</button>').join('');
+    body.classList.add('sheet-open'); syncBack();
+  }
+  function setUi(c) {
+    if (!I.codes.includes(c) || c === UI) return;
+    UI = c; state.ui = c; saveState();
+    for (const k of Object.keys(dataCache)) for (const w of dataCache[k].words) w._h = hayOf(w);
+    applyI18n();
+    applyTheme(currentTheme(), false);
+    buildLangButtons();
+    updateLevelBtn();
+    rebuildTopics();
+    applyFilters();
+    updateStats();
+    if (body.classList.contains('guide-open')) renderGuide();
+  }
+  function applyI18n() {
+    document.documentElement.lang = UI;
+    for (const e of document.querySelectorAll('[data-i18n]')) e.textContent = L(e.dataset.i18n);
+    for (const e of document.querySelectorAll('[data-i18n-aria]')) e.setAttribute('aria-label', L(e.dataset.i18nAria));
+    for (const e of document.querySelectorAll('[data-i18n-ph]')) e.setAttribute('placeholder', L(e.dataset.i18nPh));
+    $('guide').setAttribute('aria-label', L('guideBtn'));
+    $('legal').setAttribute('aria-label', L('legalTitle'));
+    if (body.classList.contains('legal-open')) renderLegal();
+  }
+
+  /* ---- Giấy phép & quyền riêng tư (nội dung theo ngôn ngữ giao diện) ---- */
+  function renderLegal() {
+    const d = I.LEGAL[UI] || I.LEGAL.en;
+    $('legalBody').innerHTML = d.sections.map((sec, i) => '<div class="lpanel"><h2>' + (i + 1) + '. ' + esc(sec.h.replace(/^\d+b?\.\s*/, '')) + '</h2>' +
+      (sec.p || []).map((x) => '<p>' + esc(x) + '</p>').join('') +
+      (sec.li ? '<ul>' + sec.li.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') + '</div>').join('') +
+      '<div class="lpanel"><button id="btnPrivacy" class="tonal strong">' + ic('info', 'sm') + '<span>' + esc(d.privacyBtn) + '</span></button></div>';
+  }
+
+  /* ---- Hướng dẫn sử dụng ---- */
+  const GUIDE_ICONS = ['grid', 'search', 'vol', 'eye', 'shuffle', 'globe'];
+  let gStep = 0;
+  function renderGuide() {
+    $('gicon').innerHTML = ic(GUIDE_ICONS[gStep]);
+    $('gtitle').textContent = L('guideT' + (gStep + 1));
+    $('gtext').textContent = L('guideX' + (gStep + 1));
+    $('gdots').innerHTML = GUIDE_ICONS.map((_, i) => '<i' + (i === gStep ? ' class="on"' : '') + '></i>').join('');
+    $('btnGuidePrev').style.visibility = gStep ? 'visible' : 'hidden';
+    $('gnextText').textContent = L(gStep === GUIDE_ICONS.length - 1 ? 'guideDone' : 'guideNext');
+  }
+  function openGuide() { closeDrawer(); gStep = 0; renderGuide(); body.classList.add('guide-open'); syncBack(); }
+  function closeGuide() { body.classList.remove('guide-open'); if (!state.guided) { state.guided = true; saveState(); } syncBack(); }
   window.matchMedia('(min-width: 900px)').addEventListener('change', syncBack);
 
-  function selectIndex(i, { open }) {
+  function selectIndex(i, { open, user }) {
     if (!S.view.length) return;
     i = Math.min(Math.max(i, 0), S.view.length - 1);
     S.curIndex = i;
     S.cur = S.view[i];
+    // người dùng chọn từ: phát âm NGAY, trước khi vẽ lại giao diện
+    if (user && state.auto_play && (open || isWide())) speak(S.lang, S.cur.w, false);
     renderRows();
     scrollToIndex(i);
     if (open) openDetail();
     if (open || isWide()) showWord(S.cur);
   }
-  function move(d) { if (S.view.length) selectIndex(S.curIndex + d, { open: !isWide() }); }
+  function move(d) { if (S.view.length) selectIndex(S.curIndex + d, { open: !isWide(), user: true }); }
 
   function showEmpty() {
     S.cur = null; S.token++;
@@ -530,8 +627,7 @@
     const tok = ++S.token, lang = S.lang;
     S.info = {};
     S.reveal = !(state.review || S.practice);
-    const t = TOPIC_MAP[w.topic] || TOPIC_MAP.general;
-    $('chipTopic').textContent = t.name;
+    $('chipTopic').textContent = topicName(TOPIC_MAP[w.topic] ? w.topic : 'general');
     $('chipLvl').textContent = w.lvl;
     let extra = w.pos || '';
     if (w.note) extra = (extra + '  (' + w.note + ')').trim();
@@ -542,7 +638,6 @@
     render();
     fetchInfo(lang, w, (d) => { if (tok === S.token) { Object.assign(S.info, d); render(); } })
       .catch((e) => { if (tok === S.token) { Object.assign(S.info, { failed: ['tr', 'ex'], done: ['tr', 'dic', 'ex'], err: String(e.message || e).slice(0, 160) }); render(); } });
-    if (state.auto_play) speak(lang, w.w, false);
   }
 
   function render() {
@@ -561,12 +656,12 @@
       let more = d.more || '';
       if (d.mean) { mean.textContent = d.mean; mean.style.color = ''; }
       else if (failed.includes('tr')) {
-        if (d.def_en) { mean.textContent = '(Tiếng Anh) ' + d.def_en; mean.style.color = ''; }
+        if (d.def_en) { mean.textContent = L('enPrefix') + ' ' + d.def_en; mean.style.color = ''; }
         else {
-          mean.textContent = 'Không tải được nghĩa.'; mean.style.color = 'var(--red)';
-          more = 'Lý do: ' + (d.err || 'không kết nối được dịch vụ dịch') + '   —   Kiểm tra mạng rồi chọn lại từ.';
+          mean.textContent = L('noMeaning'); mean.style.color = 'var(--red)';
+          more = L('reason', { err: d.err || L('noService') });
         }
-      } else { mean.textContent = 'Đang tra nghĩa…'; mean.style.color = 'var(--muted)'; }
+      } else { mean.textContent = L('lookingMeaning'); mean.style.color = 'var(--muted)'; }
       $('more').textContent = more;
       $('defEn').textContent = d.mean ? (d.def_en || '') : '';
     }
@@ -574,9 +669,9 @@
     if (d.ex) { ex.textContent = d.ex; ex.style.color = ''; $('btnExPlay').style.display = ''; }
     else {
       $('btnExPlay').style.display = 'none';
-      if (failed.includes('ex')) { ex.textContent = 'Không tải được ví dụ (mất kết nối).'; ex.style.color = 'var(--red)'; }
-      else if (done.includes('ex')) { ex.textContent = 'Chưa tìm thấy ngữ cảnh cho từ này.'; ex.style.color = 'var(--muted)'; }
-      else { ex.textContent = 'Đang tìm ngữ cảnh…'; ex.style.color = 'var(--muted)'; }
+      if (failed.includes('ex')) { ex.textContent = L('exFail'); ex.style.color = 'var(--red)'; }
+      else if (done.includes('ex')) { ex.textContent = L('exNone'); ex.style.color = 'var(--muted)'; }
+      else { ex.textContent = L('exLoading'); ex.style.color = 'var(--muted)'; }
     }
     $('exPhon').textContent = d.ex_phon || '';
     $('exVi').textContent = hidden ? '' : (d.ex_vi || '');
@@ -588,9 +683,9 @@
     const p = progOf(S.lang.code);
     const l = $('btnLearn'), f = $('btnFav');
     const learned = p.learned.has(w.id), faved = p.fav.has(w.id);
-    l.innerHTML = ic(learned ? 'checkc' : 'circle') + '<span>' + (learned ? 'Đã thuộc' : 'Thuộc rồi') + '</span>';
+    l.innerHTML = ic(learned ? 'checkc' : 'circle') + '<span>' + L(learned ? 'learned' : 'markLearn') + '</span>';
     l.classList.toggle('learned', learned);
-    f.innerHTML = ic('star') + '<span>Yêu thích</span>';
+    f.innerHTML = ic('star') + '<span>' + esc(L('favorite')) + '</span>';
     f.classList.toggle('faved', faved);
   }
   function toggleLearned() {
@@ -611,12 +706,12 @@
   function startPractice() {
     const code = S.lang.code, learned = progOf(code).learned;
     const pool = S.words.filter((w) => learned.has(w.id));
-    if (!pool.length) { say('Chưa có từ nào đánh dấu "Đã thuộc" để luyện tập.', 6000); return; }
+    if (!pool.length) { say(L('noLearned'), 6000); return; }
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const sample = pool.slice(0, Math.min(10, pool.length));
     S.practice = true;
     highlightTopic(false);
-    showList(sample, 'Luyện tập', sample.length + ' / ' + pool.length + ' từ đã thuộc · nghĩa ẩn');
+    showList(sample, L('practice'), L('practiceSub', { n: sample.length, m: pool.length }));
   }
 
   /* ---------------- sự kiện ---------------- */
@@ -625,10 +720,18 @@
   $('btnBack').addEventListener('click', closeDetail);
   $('btnLegal').addEventListener('click', openLegal);
   $('btnLegalBack').addEventListener('click', closeLegal);
-  $('btnPrivacy').addEventListener('click', () => {
-    try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (e) { /* bỏ qua */ }
-    say('Không mở được trình duyệt.', 5000);
+  $('legalBody').addEventListener('click', (e) => {
+    if (!e.target.closest('#btnPrivacy')) return;
+    try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (err) { /* bỏ qua */ }
+    say(L('ttsBrowser'), 5000);
   });
+  $('btnLang').addEventListener('click', openLangSheet);
+  $('btnGuide').addEventListener('click', openGuide);
+  $('btnGuideSkip').addEventListener('click', closeGuide);
+  $('btnGuidePrev').addEventListener('click', () => { if (gStep > 0) { gStep--; renderGuide(); } });
+  $('btnGuideNext').addEventListener('click', () => { if (gStep < GUIDE_ICONS.length - 1) { gStep++; renderGuide(); } else closeGuide(); });
+  $('btnRestart').addEventListener('click', () => { try { if (ANDROID && ANDROID.completeUpdate) ANDROID.completeUpdate(); } catch (e) { /* bỏ qua */ } });
+  window.__updateReady = () => { $('updateBar').hidden = false; };
   $('topics').addEventListener('click', (e) => {
     const b = e.target.closest('.trow');
     if (!b) return;
@@ -644,6 +747,7 @@
   $('sheetList').addEventListener('click', (e) => {
     const b = e.target.closest('.opt');
     if (!b) return;
+    if (b.dataset.ui) { closeSheet(); setUi(b.dataset.ui); return; }
     S.level = b.dataset.v;
     updateLevelBtn(); closeSheet(); applyFilters();
   });
@@ -693,6 +797,7 @@
 
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
+    if (body.classList.contains('guide-open')) { closeGuide(); return true; }
     if (body.classList.contains('legal-open')) { closeLegal(); return true; }
     if (body.classList.contains('sheet-open')) { closeSheet(); return true; }
     if (body.classList.contains('drawer-open')) { closeDrawer(); return true; }
@@ -703,6 +808,8 @@
   /* ---------------- khởi động ---------------- */
   (async () => {
     applyTheme(state.theme === 'light' || state.theme === 'dark' ? state.theme : (systemDark() ? 'dark' : 'light'), false);
+    applyI18n();
+    warmTts(LANGS[state.lang] || LANGS.en);
     buildLangButtons();
     await KV.ready;
     try { TOPICS = await (await fetch('data/topics.json')).json(); } catch (e) { TOPICS = []; }
@@ -711,5 +818,7 @@
     $('swReview').checked = !!state.review;
     $('swAuto').checked = !!state.auto_play;
     await loadLanguage(LANGS[state.lang] ? state.lang : 'en');
+    try { if (ANDROID && ANDROID.updateReady && ANDROID.updateReady()) window.__updateReady(); } catch (e) { /* bỏ qua */ }
+    if (!state.guided) openGuide(); // lần đầu mở app: hiện hướng dẫn sử dụng
   })();
 })();

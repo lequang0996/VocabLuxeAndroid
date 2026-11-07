@@ -43,7 +43,9 @@
     <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3.5h4.5V8M4 20.5 20.5 4M20.5 16v4.5H16M14.8 14.8l5.7 5.7M4 4l5 5"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></symbol>
- <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.6v.1"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5M12 7.6v.1"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M9.4 9.4a2.7 2.7 0 1 1 3.9 2.4c-.8.4-1.3 1-1.3 1.9M12 17v.1"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.6 3.9 5.8 3.9 9.5s-1.3 6.9-3.9 9.5c-2.6-2.6-3.9-5.8-3.9-9.5S9.4 5.1 12 2.5Z"/></symbol>
     <symbol id="i-snail" viewBox="0 0 24 24"><path d="M12 7.5V12l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></symbol>
   </defs>
 </svg>
@@ -52,29 +54,33 @@
   <div id="scrim"></div>
 
   <!-- Menu chủ đề -->
-  <aside id="drawer" aria-label="Chủ đề">
+  <aside id="drawer" data-i18n-aria="topics">
     <div class="dhead">
       <div class="logo" aria-hidden="true">V</div>
       <div class="dbrand">
         <div class="brand">VocabLuxe</div>
-        <div class="brand-sub">Từ vựng Anh · Trung</div>
+        <div class="brand-sub" data-i18n="brandSub"></div>
       </div>
     </div>
-    <div class="cap dcap">Chủ đề</div>
+    <div class="cap dcap" data-i18n="topics"></div>
     <div id="topics"></div>
-    <button id="btnLegal" class="legal-link"><svg class="ic sm"><use href="#i-info"/></svg><span>Giấy phép &amp; Quyền riêng tư</span></button>
+    <div class="dfoot">
+      <button id="btnGuide" class="legal-link"><svg class="ic sm"><use href="#i-help"/></svg><span data-i18n="guideBtn"></span></button>
+      <button id="btnLang" class="legal-link"><svg class="ic sm"><use href="#i-globe"/></svg><span data-i18n="langBtn"></span></button>
+      <button id="btnLegal" class="legal-link"><svg class="ic sm"><use href="#i-info"/></svg><span data-i18n="legalBtn"></span></button>
+    </div>
   </aside>
 
   <!-- Danh sách từ -->
   <main id="listPane">
     <header class="lhead">
       <div class="topbar">
-        <button id="btnMenu" class="icon-btn" aria-label="Mở danh sách chủ đề"><svg class="ic"><use href="#i-menu"/></svg></button>
+        <button id="btnMenu" class="icon-btn" data-i18n-aria="openTopics"><svg class="ic"><use href="#i-menu"/></svg></button>
         <div class="titlebox">
           <div class="brand sm">VocabLuxe</div>
           <div id="stats" class="stats-text"></div>
         </div>
-        <button id="btnTheme" class="icon-btn" aria-label="Đổi giao diện sáng / tối">
+        <button id="btnTheme" class="icon-btn" >
           <svg class="ic ic-sun"><use href="#i-sun"/></svg><svg class="ic ic-moon"><use href="#i-moon"/></svg>
         </button>
       </div>
@@ -84,30 +90,30 @@
 
       <div class="searchbox">
         <svg class="ic"><use href="#i-search"/></svg>
-        <input id="search" type="search" placeholder="Tìm từ, nghĩa, phiên âm…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-        <button id="btnClear" class="clear" hidden aria-label="Xóa từ khóa"><svg class="ic"><use href="#i-x"/></svg></button>
+        <input id="search" type="search" data-i18n-ph="searchPh" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <button id="btnClear" class="clear" hidden data-i18n-aria="clearSearch"><svg class="ic"><use href="#i-x"/></svg></button>
       </div>
 
       <div id="seg" class="seg" role="tablist">
-        <button data-v="all" class="on">Tất cả</button>
-        <button data-v="todo">Chưa thuộc</button>
-        <button data-v="done">Đã thuộc</button>
-        <button data-v="fav">Yêu thích</button>
+        <button data-v="all" class="on" data-i18n="fAll"></button>
+        <button data-v="todo" data-i18n="fTodo"></button>
+        <button data-v="done" data-i18n="fDone"></button>
+        <button data-v="fav" data-i18n="fFav"></button>
       </div>
 
       <div class="titlerow">
         <div class="ttext"><div id="lTitle" class="ltitle"></div><div id="lCount" class="lcount"></div></div>
-        <button id="btnLevel" class="tonal" aria-haspopup="dialog" aria-label="Chọn cấp độ"><span id="levelText">Mọi cấp</span><svg class="ic sm"><use href="#i-down"/></svg></button>
-        <button id="btnPractice" class="tonal strong"><svg class="ic sm"><use href="#i-shuffle"/></svg><span>Luyện tập</span></button>
+        <button id="btnLevel" class="tonal" aria-haspopup="dialog" data-i18n-aria="chooseLevel"><span id="levelText"></span><svg class="ic sm"><use href="#i-down"/></svg></button>
+        <button id="btnPractice" class="tonal strong"><svg class="ic sm"><use href="#i-shuffle"/></svg><span data-i18n="practice"></span></button>
       </div>
     </header>
     <div id="list"><div id="rows"></div></div>
   </main>
 
   <!-- Chi tiết từ -->
-  <section id="detail" aria-label="Chi tiết từ">
+  <section id="detail">
     <div class="dtop">
-      <button id="btnBack" class="icon-btn" aria-label="Quay lại danh sách"><svg class="ic"><use href="#i-left"/></svg></button>
+      <button id="btnBack" class="icon-btn" data-i18n-aria="back"><svg class="ic"><use href="#i-left"/></svg></button>
       <div class="chips">
         <span id="chipTopic" class="chip primary"></span>
         <span id="chipLvl" class="chip"></span>
@@ -121,29 +127,29 @@
         <div id="phon" class="phon"></div>
 
         <div class="arow">
-          <button id="btnPlay" class="play" aria-label="Nghe phát âm"><svg class="ic"><use href="#i-play"/></svg></button>
-          <button id="btnSlow" class="tonal"><svg class="ic sm"><use href="#i-snail"/></svg><span>Nghe chậm</span></button>
+          <button id="btnPlay" class="play" data-i18n-aria="listen"><svg class="ic"><use href="#i-play"/></svg></button>
+          <button id="btnSlow" class="tonal"><svg class="ic sm"><use href="#i-snail"/></svg><span data-i18n="slow"></span></button>
         </div>
 
         <div class="swrow">
-          <label class="sw"><input type="checkbox" id="swAuto"><i></i><span>Tự phát âm</span></label>
-          <label class="sw"><input type="checkbox" id="swReview"><i></i><span>Ôn tập (ẩn nghĩa)</span></label>
+          <label class="sw"><input type="checkbox" id="swAuto"><i></i><span data-i18n="autoPlay"></span></label>
+          <label class="sw"><input type="checkbox" id="swReview"><i></i><span data-i18n="reviewMode"></span></label>
         </div>
       </div>
-      <div class="hint">Vuốt trái / phải để chuyển từ</div>
+      <div class="hint" data-i18n="swipeHint"></div>
 
       <div class="panel">
-        <div class="cap">Nghĩa</div>
+        <div class="cap" data-i18n="meaning"></div>
         <div id="mean" class="mean"></div>
         <div id="more" class="more"></div>
         <div id="defEn" class="defen"></div>
-        <button id="btnReveal" class="tonal strong"><svg class="ic sm"><use href="#i-eye"/></svg><span>Hiện đáp án</span></button>
+        <button id="btnReveal" class="tonal strong"><svg class="ic sm"><use href="#i-eye"/></svg><span data-i18n="reveal"></span></button>
       </div>
 
       <div class="panel">
-        <div class="cap">Ngữ cảnh</div>
+        <div class="cap" data-i18n="context"></div>
         <div class="exrow">
-          <button id="btnExPlay" class="play sm" aria-label="Nghe câu ví dụ"><svg class="ic"><use href="#i-vol"/></svg></button>
+          <button id="btnExPlay" class="play sm" data-i18n-aria="listenEx"><svg class="ic"><use href="#i-vol"/></svg></button>
           <div class="extext">
             <div id="ex" class="ex"></div>
             <div id="exPhon" class="exphon"></div>
@@ -151,86 +157,54 @@
           </div>
         </div>
       </div>
-      <div class="source">Nguồn: Oxford 3000/5000 · HSK 1–6</div>
+      <div class="source"><span data-i18n="srcPrefix"></span>: Oxford 3000/5000 · HSK 1–6</div>
     </div>
 
     <div class="nav">
-      <button id="btnPrev" class="nbtn icon" aria-label="Từ trước"><svg class="ic"><use href="#i-left"/></svg></button>
+      <button id="btnPrev" class="nbtn icon" data-i18n-aria="prev"><svg class="ic"><use href="#i-left"/></svg></button>
       <button id="btnLearn" class="nbtn wide"></button>
       <button id="btnFav" class="nbtn wide"></button>
-      <button id="btnNext" class="nbtn icon" aria-label="Từ tiếp theo"><svg class="ic"><use href="#i-right"/></svg></button>
+      <button id="btnNext" class="nbtn icon" data-i18n-aria="next"><svg class="ic"><use href="#i-right"/></svg></button>
     </div>
   </section>
 
 
-  <!-- Giấy phép sử dụng, nguồn dữ liệu (tiếng Anh, tiếng Trung) và quyền riêng tư -->
-  <section id="legal" aria-label="Giấy phép sử dụng">
+  <!-- Giấy phép sử dụng, nguồn dữ liệu, quảng cáo, quyền riêng tư (nội dung do app.js dựng theo ngôn ngữ) -->
+  <section id="legal">
     <div class="dtop">
-      <button id="btnLegalBack" class="icon-btn" aria-label="Quay lại"><svg class="ic"><use href="#i-left"/></svg></button>
-      <div class="legal-title">Giấy phép &amp; Quyền riêng tư</div>
+      <button id="btnLegalBack" class="icon-btn" data-i18n-aria="back"><svg class="ic"><use href="#i-left"/></svg></button>
+      <div class="legal-title" data-i18n="legalTitle"></div>
     </div>
-    <div id="legalScroll" class="legal-scroll">
-      <div class="lpanel">
-        <h2>1. Giấy phép sử dụng ứng dụng</h2>
-        <p>VocabLuxe cấp cho bạn quyền cá nhân, phi thương mại, không độc quyền và không thể chuyển nhượng để cài đặt và sử dụng ứng dụng nhằm mục đích học tập.</p>
-        <p>Bạn không được bán lại, cho thuê, sao chép hàng loạt hoặc trích xuất dữ liệu từ vựng trong ứng dụng để phân phối lại.</p>
-        <p>Ứng dụng được cung cấp “nguyên trạng”, không có bảo đảm nào về độ chính xác hay đầy đủ của nghĩa, phiên âm và câu ví dụ (một phần nghĩa và ví dụ được dịch tự động nên có thể sai sót). Nhà phát triển không chịu trách nhiệm cho thiệt hại phát sinh từ việc sử dụng ứng dụng, trong phạm vi pháp luật cho phép.</p>
-      </div>
+    <div id="legalScroll" class="legal-scroll"><div id="legalBody"></div><div class="source">VocabLuxe</div></div>
+  </section>
 
-      <div class="lpanel">
-        <h2>2. Tiếng Anh — nguồn dữ liệu &amp; giấy phép</h2>
-        <ul>
-          <li><b>Danh sách từ và cấp độ A1–C1:</b> The Oxford 3000™ và The Oxford 5000™, © Oxford University Press. “Oxford 3000” và “Oxford 5000” là nhãn hiệu của Oxford University Press.</li>
-          <li><b>Phiên âm và định nghĩa tiếng Anh:</b> Free Dictionary API (dictionaryapi.dev), dữ liệu gốc từ Wiktionary, theo giấy phép Creative Commons Ghi nhận nguồn – Chia sẻ tương tự 3.0 (CC BY-SA 3.0).</li>
-          <li><b>Câu ví dụ:</b> Tatoeba (tatoeba.org), theo giấy phép Creative Commons Ghi nhận nguồn 2.0 Pháp (CC BY 2.0 FR). Câu do các thành viên Tatoeba đóng góp.</li>
-          <li><b>Nghĩa tiếng Việt (dịch tự động):</b> Google Dịch và MyMemory (Translated).</li>
-        </ul>
-      </div>
-
-      <div class="lpanel">
-        <h2>3. Tiếng Trung — nguồn dữ liệu &amp; giấy phép</h2>
-        <ul>
-          <li><b>Danh sách từ HSK 1–6:</b> theo cấp độ của kỳ thi HSK. “HSK” là tên gọi và nhãn hiệu thuộc Chinese Testing International (CTI).</li>
-          <li><b>Pinyin, âm Hán Việt, nghĩa tiếng Việt và câu ví dụ:</b> được tích hợp sẵn trong ứng dụng; phần còn thiếu được bổ sung từ Tatoeba (CC BY 2.0 FR) và dịch tự động bằng Google Dịch / MyMemory.</li>
-        </ul>
-      </div>
-
-      <div class="lpanel">
-        <h2>4. Phát âm</h2>
-        <p>Phát âm dùng bộ chuyển văn bản thành giọng nói (Text-to-Speech) có sẵn trên thiết bị của bạn; ứng dụng không tạo hay lưu tệp âm thanh. Tùy cài đặt máy, bộ đọc giọng có thể xử lý văn bản trên máy chủ của nhà cung cấp bộ đọc đó.</p>
-      </div>
-
-      <div class="lpanel">
-        <h2>5. Thành phần mã nguồn mở</h2>
-        <ul>
-          <li>AndroidX Activity, AndroidX Core, AndroidX WebKit — Apache License 2.0 (apache.org/licenses/LICENSE-2.0).</li>
-          <li>Kotlin Standard Library (thư viện đi kèm AndroidX) — Apache License 2.0.</li>
-        </ul>
-      </div>
-
-      <div class="lpanel">
-        <h2>6. Miễn trừ liên kết</h2>
-        <p>VocabLuxe là ứng dụng độc lập, không liên kết với, không được bảo trợ hay xác nhận bởi Oxford University Press, Chinese Testing International, Google, Tatoeba hay Wiktionary. Mọi tên gọi và nhãn hiệu thuộc về chủ sở hữu tương ứng và chỉ được nhắc đến để nêu nguồn.</p>
-      </div>
-
-      <div class="lpanel">
-        <h2>7. Quyền riêng tư</h2>
-        <p>Ứng dụng không có tài khoản, không quảng cáo, không phân tích hành vi. Tiến độ học và cài đặt chỉ lưu trên máy bạn. Khi tra nghĩa hoặc tìm câu ví dụ còn thiếu, từ đang xem được gửi tới các dịch vụ ở mục 2 và 3.</p>
-        <button id="btnPrivacy" class="tonal strong"><svg class="ic sm"><use href="#i-info"/></svg><span>Xem Chính sách quyền riêng tư</span></button>
-      </div>
-      <div class="source">VocabLuxe · Từ vựng Anh · Trung</div>
+  <!-- Hướng dẫn sử dụng (tự mở lần đầu, mở lại từ menu) -->
+  <section id="guide" role="dialog" aria-modal="true">
+    <div class="gtop"><button id="btnGuideSkip" class="gskip" data-i18n="guideSkip"></button></div>
+    <div class="gbody">
+      <div id="gicon" class="gicon"></div>
+      <h2 id="gtitle" class="gtitle"></h2>
+      <p id="gtext" class="gtext"></p>
+    </div>
+    <div id="gdots" class="gdots"></div>
+    <div class="gnav">
+      <button id="btnGuidePrev" class="tonal"><svg class="ic sm"><use href="#i-left"/></svg><span data-i18n="back"></span></button>
+      <button id="btnGuideNext" class="tonal strong"><span id="gnextText"></span><svg class="ic sm"><use href="#i-right"/></svg></button>
     </div>
   </section>
 
   <!-- Bảng chọn cấp độ (thay cho dropdown mặc định) -->
   <div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet-handle"></div>
-    <div id="sheetTitle" class="sheet-title">Chọn cấp độ</div>
+    <div id="sheetTitle" class="sheet-title"></div>
     <div id="sheetList" class="sheet-list"></div>
   </div>
 
+  <div id="updateBar" role="status" hidden><span data-i18n="updDone"></span><button id="btnRestart" data-i18n="updRestart"></button></div>
   <div id="toast" role="status"></div>
 </div>
+<script src="i18n.js"></script>
+<script src="i18n-guide.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
