@@ -28,7 +28,7 @@ window.I18N = (() => {
   const T = {
     vi: {
       menu: 'Menu',
-      brandSub: 'Từ vựng Anh · Trung', topics: 'Chủ đề', langBtn: 'Ngôn ngữ', legalBtn: 'Giấy phép & Quyền riêng tư',
+      brandSub: 'Từ vựng Anh · Trung', topics: 'Chủ đề', langBtn: 'Ngôn ngữ', licenseBtn: 'Giấy phép', privacyLink: 'Quyền riêng tư',
       openTopics: 'Mở danh sách chủ đề', toLight: 'Chuyển sang giao diện sáng', toDark: 'Chuyển sang giao diện tối',
       searchPh: 'Tìm từ, nghĩa, phiên âm…', clearSearch: 'Xóa từ khóa',
       fAll: 'Tất cả', fTodo: 'Chưa thuộc', fDone: 'Đã thuộc', fFav: 'Yêu thích',
@@ -49,11 +49,11 @@ window.I18N = (() => {
       lookingMeaning: 'Đang tra nghĩa…', exFail: 'Không tải được ví dụ (mất kết nối).',
       exNone: 'Chưa tìm thấy ngữ cảnh cho từ này.', exLoading: 'Đang tìm ngữ cảnh…', enPrefix: '(Tiếng Anh)',
       updDone: 'Đã tải xong bản cập nhật.', updRestart: 'Khởi động lại', language: 'Ngôn ngữ',
-      legalTitle: 'Giấy phép & Quyền riêng tư', lang_en: 'Tiếng Anh', lang_zh: 'Tiếng Trung',
+      legalTitle: 'Giấy phép', lang_en: 'Tiếng Anh', lang_zh: 'Tiếng Trung',
     },
     en: {
       menu: 'Menu',
-      brandSub: 'English · Chinese vocabulary', topics: 'Topics', langBtn: 'Language', legalBtn: 'Licenses & Privacy',
+      brandSub: 'English · Chinese vocabulary', topics: 'Topics', langBtn: 'Language', licenseBtn: 'Licenses', privacyLink: 'Privacy Policy',
       openTopics: 'Open topic list', toLight: 'Switch to light theme', toDark: 'Switch to dark theme',
       searchPh: 'Search words, meanings, pronunciation…', clearSearch: 'Clear search',
       fAll: 'All', fTodo: 'Not learned', fDone: 'Learned', fFav: 'Favorites',
@@ -74,11 +74,11 @@ window.I18N = (() => {
       lookingMeaning: 'Looking up meaning…', exFail: 'Could not load the example (offline).',
       exNone: 'No context found for this word.', exLoading: 'Finding context…', enPrefix: '(English)',
       updDone: 'An update has been downloaded.', updRestart: 'Restart', language: 'Language',
-      legalTitle: 'Licenses & Privacy', lang_en: 'English', lang_zh: 'Chinese',
+      legalTitle: 'Licenses', lang_en: 'English', lang_zh: 'Chinese',
     },
     zh: {
       menu: '菜单',
-      brandSub: '英语 · 汉语词汇', topics: '主题', langBtn: '语言', legalBtn: '许可与隐私',
+      brandSub: '英语 · 汉语词汇', topics: '主题', langBtn: '语言', licenseBtn: '许可', privacyLink: '隐私政策',
       openTopics: '打开主题列表', toLight: '切换到浅色主题', toDark: '切换到深色主题',
       searchPh: '搜索单词、释义、拼音…', clearSearch: '清除搜索',
       fAll: '全部', fTodo: '未掌握', fDone: '已掌握', fFav: '收藏',
@@ -99,11 +99,11 @@ window.I18N = (() => {
       lookingMeaning: '正在查询释义…', exFail: '无法加载例句（网络中断）。',
       exNone: '暂未找到该词的语境。', exLoading: '正在查找语境…', enPrefix: '（英文）',
       updDone: '更新已下载完成。', updRestart: '重新启动', language: '语言',
-      legalTitle: '许可与隐私', lang_en: '英语', lang_zh: '中文',
+      legalTitle: '许可', lang_en: '英语', lang_zh: '中文',
     },
     es: {
       menu: 'Menú',
-      brandSub: 'Vocabulario de inglés y chino', topics: 'Temas', langBtn: 'Idioma', legalBtn: 'Licencias y privacidad',
+      brandSub: 'Vocabulario de inglés y chino', topics: 'Temas', langBtn: 'Idioma', licenseBtn: 'Licencias', privacyLink: 'Privacidad',
       openTopics: 'Abrir lista de temas', toLight: 'Cambiar al tema claro', toDark: 'Cambiar al tema oscuro',
       searchPh: 'Buscar palabra, significado, pronunciación…', clearSearch: 'Borrar búsqueda',
       fAll: 'Todas', fTodo: 'Por aprender', fDone: 'Aprendidas', fFav: 'Favoritas',
@@ -124,11 +124,11 @@ window.I18N = (() => {
       lookingMeaning: 'Buscando significado…', exFail: 'No se pudo cargar el ejemplo (sin conexión).',
       exNone: 'No se encontró contexto para esta palabra.', exLoading: 'Buscando contexto…', enPrefix: '(Inglés)',
       updDone: 'Se ha descargado una actualización.', updRestart: 'Reiniciar', language: 'Idioma',
-      legalTitle: 'Licencias y privacidad', lang_en: 'Inglés', lang_zh: 'Chino',
+      legalTitle: 'Licencias', lang_en: 'Inglés', lang_zh: 'Chino',
     },
     pt: {
       menu: 'Menu',
-      brandSub: 'Vocabulário de inglês e chinês', topics: 'Temas', langBtn: 'Idioma', legalBtn: 'Licenças e privacidade',
+      brandSub: 'Vocabulário de inglês e chinês', topics: 'Temas', langBtn: 'Idioma', licenseBtn: 'Licenças', privacyLink: 'Privacidade',
       openTopics: 'Abrir lista de temas', toLight: 'Mudar para o tema claro', toDark: 'Mudar para o tema escuro',
       searchPh: 'Buscar palavra, significado, pronúncia…', clearSearch: 'Limpar busca',
       fAll: 'Todas', fTodo: 'A aprender', fDone: 'Aprendidas', fFav: 'Favoritas',
@@ -149,11 +149,11 @@ window.I18N = (() => {
       lookingMeaning: 'Buscando significado…', exFail: 'Não foi possível carregar o exemplo (sem conexão).',
       exNone: 'Nenhum contexto encontrado para esta palavra.', exLoading: 'Procurando contexto…', enPrefix: '(Inglês)',
       updDone: 'Uma atualização foi baixada.', updRestart: 'Reiniciar', language: 'Idioma',
-      legalTitle: 'Licenças e privacidade', lang_en: 'Inglês', lang_zh: 'Chinês',
+      legalTitle: 'Licenças', lang_en: 'Inglês', lang_zh: 'Chinês',
     },
     ru: {
       menu: 'Меню',
-      brandSub: 'Словарный запас: английский · китайский', topics: 'Темы', langBtn: 'Язык', legalBtn: 'Лицензии и конфиденциальность',
+      brandSub: 'Словарный запас: английский · китайский', topics: 'Темы', langBtn: 'Язык', licenseBtn: 'Лицензии', privacyLink: 'Конфиденциальность',
       openTopics: 'Открыть список тем', toLight: 'Переключить на светлую тему', toDark: 'Переключить на тёмную тему',
       searchPh: 'Поиск слова, значения, произношения…', clearSearch: 'Очистить поиск',
       fAll: 'Все', fTodo: 'Не выучены', fDone: 'Выучены', fFav: 'Избранное',
@@ -174,11 +174,11 @@ window.I18N = (() => {
       lookingMeaning: 'Ищем значение…', exFail: 'Не удалось загрузить пример (нет сети).',
       exNone: 'Для этого слова контекст не найден.', exLoading: 'Ищем контекст…', enPrefix: '(Английский)',
       updDone: 'Обновление загружено.', updRestart: 'Перезапустить', language: 'Язык',
-      legalTitle: 'Лицензии и конфиденциальность', lang_en: 'Английский', lang_zh: 'Китайский',
+      legalTitle: 'Лицензии', lang_en: 'Английский', lang_zh: 'Китайский',
     },
     ja: {
       menu: 'メニュー',
-      brandSub: '英語・中国語の語彙', topics: 'トピック', langBtn: '言語', legalBtn: 'ライセンスとプライバシー',
+      brandSub: '英語・中国語の語彙', topics: 'トピック', langBtn: '言語', licenseBtn: 'ライセンス', privacyLink: 'プライバシー',
       openTopics: 'トピック一覧を開く', toLight: 'ライトテーマに切り替え', toDark: 'ダークテーマに切り替え',
       searchPh: '単語・意味・発音を検索…', clearSearch: '検索をクリア',
       fAll: 'すべて', fTodo: '未習得', fDone: '習得済み', fFav: 'お気に入り',
@@ -199,11 +199,11 @@ window.I18N = (() => {
       lookingMeaning: '意味を調べています…', exFail: '例文を読み込めませんでした（オフライン）。',
       exNone: 'この単語の用例は見つかりませんでした。', exLoading: '用例を探しています…', enPrefix: '（英語）',
       updDone: 'アップデートのダウンロードが完了しました。', updRestart: '再起動', language: '言語',
-      legalTitle: 'ライセンスとプライバシー', lang_en: '英語', lang_zh: '中国語',
+      legalTitle: 'ライセンス', lang_en: '英語', lang_zh: '中国語',
     },
     ko: {
       menu: '메뉴',
-      brandSub: '영어 · 중국어 어휘', topics: '주제', langBtn: '언어', legalBtn: '라이선스 및 개인정보',
+      brandSub: '영어 · 중국어 어휘', topics: '주제', langBtn: '언어', licenseBtn: '라이선스', privacyLink: '개인정보',
       openTopics: '주제 목록 열기', toLight: '라이트 테마로 전환', toDark: '다크 테마로 전환',
       searchPh: '단어, 뜻, 발음 검색…', clearSearch: '검색어 지우기',
       fAll: '전체', fTodo: '미암기', fDone: '암기 완료', fFav: '즐겨찾기',
@@ -224,7 +224,7 @@ window.I18N = (() => {
       lookingMeaning: '뜻을 찾는 중…', exFail: '예문을 불러오지 못했습니다(오프라인).',
       exNone: '이 단어의 용례를 찾지 못했습니다.', exLoading: '용례를 찾는 중…', enPrefix: '(영어)',
       updDone: '업데이트 다운로드가 완료되었습니다.', updRestart: '다시 시작', language: '언어',
-      legalTitle: '라이선스 및 개인정보', lang_en: '영어', lang_zh: '중국어',
+      legalTitle: '라이선스', lang_en: '영어', lang_zh: '중국어',
     },
   };
 
@@ -260,55 +260,47 @@ window.I18N = (() => {
   /*  Giấy phép sử dụng, nguồn dữ liệu, quảng cáo, quyền riêng tư        */
   /*  Mỗi mục: h = tiêu đề, p = đoạn văn, li = gạch đầu dòng             */
   /* ------------------------------------------------------------------ */
-  /* Giấy phép (chỉ nguồn dữ liệu, theo yêu cầu) và quyền riêng tư. Mỗi mục: h = tiêu đề, p = đoạn văn */
+  /* Giấy phép (chỉ nguồn dữ liệu). Quyền riêng tư mở thẳng trang chính sách trên GitHub Pages. Mỗi mục: h = tiêu đề, p = đoạn văn */
   const LEGAL = {
-    vi: { privacyBtn: 'Xem Chính sách quyền riêng tư', sections: [
+    vi: { sections: [
       { h: 'Giấy phép', p: [
         'Từ vựng & định nghĩa tiếng Anh: lấy từ Wiktionary / WordNet, sử dụng theo giấy phép Creative Commons Ghi nhận nguồn – Chia sẻ tương tự 4.0 Quốc tế (CC BY-SA 4.0).',
         'Dữ liệu từ điển tiếng Trung: lấy từ CC-CEDICT, sử dụng theo giấy phép Creative Commons Ghi nhận nguồn – Chia sẻ tương tự 4.0 Quốc tế (CC BY-SA 4.0).'] },
-      { h: 'Quyền riêng tư', p: ['Không cần tài khoản. Tiến độ học và cài đặt chỉ lưu trên máy bạn. Từ bạn tra được gửi tới các dịch vụ dịch và từ điển; quảng cáo do Google AdMob cung cấp; việc kiểm tra cập nhật dùng Google Play. Xem đầy đủ trong Chính sách quyền riêng tư.'] },
     ] },
-    en: { privacyBtn: 'View Privacy Policy', sections: [
+    en: { sections: [
       { h: 'Licenses', p: [
         'English Vocabulary & Definitions: Sourced from Wiktionary / WordNet, used under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).',
         'Chinese Dictionary Data: Sourced from CC-CEDICT, used under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).'] },
-      { h: 'Privacy', p: ['No account is required. Your study progress and settings are stored only on your device. The words you look up are sent to translation and dictionary services, ads are provided by Google AdMob, and update checks use Google Play. See the full Privacy Policy.'] },
     ] },
-    zh: { privacyBtn: '查看隐私政策', sections: [
+    zh: { sections: [
       { h: '许可', p: [
         '英语词汇与释义：来源于 Wiktionary / WordNet，依据知识共享署名-相同方式共享 4.0 国际许可协议（CC BY-SA 4.0）使用。',
         '汉语词典数据：来源于 CC-CEDICT，依据知识共享署名-相同方式共享 4.0 国际许可协议（CC BY-SA 4.0）使用。'] },
-      { h: '隐私', p: ['无需账号。学习进度和设置仅保存在您的设备上。您查询的单词会发送至翻译和词典服务；广告由 Google AdMob 提供；更新检查使用 Google Play。完整内容请查看隐私政策。'] },
     ] },
-    es: { privacyBtn: 'Ver la Política de privacidad', sections: [
+    es: { sections: [
       { h: 'Licencias', p: [
         'Vocabulario y definiciones en inglés: procedentes de Wiktionary / WordNet, utilizados bajo la licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0).',
         'Datos del diccionario de chino: procedentes de CC-CEDICT, utilizados bajo la licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0).'] },
-      { h: 'Privacidad', p: ['No se necesita cuenta. Tu progreso y ajustes se guardan solo en tu dispositivo. Las palabras que consultas se envían a servicios de traducción y diccionario; los anuncios los ofrece Google AdMob; la comprobación de actualizaciones usa Google Play. Consulta la Política de privacidad completa.'] },
     ] },
-    pt: { privacyBtn: 'Ver a Política de privacidade', sections: [
+    pt: { sections: [
       { h: 'Licenças', p: [
         'Vocabulário e definições em inglês: obtidos do Wiktionary / WordNet, usados sob a licença Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional (CC BY-SA 4.0).',
         'Dados do dicionário de chinês: obtidos do CC-CEDICT, usados sob a licença Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional (CC BY-SA 4.0).'] },
-      { h: 'Privacidade', p: ['Não é necessário criar conta. Seu progresso e configurações ficam apenas no seu dispositivo. As palavras consultadas são enviadas a serviços de tradução e dicionário; os anúncios são fornecidos pelo Google AdMob; a verificação de atualizações usa o Google Play. Veja a Política de privacidade completa.'] },
     ] },
-    ru: { privacyBtn: 'Открыть Политику конфиденциальности', sections: [
+    ru: { sections: [
       { h: 'Лицензии', p: [
         'Английская лексика и определения: источник — Wiktionary / WordNet, используются по лицензии Creative Commons «Attribution-ShareAlike 4.0 International» (CC BY-SA 4.0).',
         'Данные китайского словаря: источник — CC-CEDICT, используются по лицензии Creative Commons «Attribution-ShareAlike 4.0 International» (CC BY-SA 4.0).'] },
-      { h: 'Конфиденциальность', p: ['Учётная запись не нужна. Прогресс и настройки хранятся только на вашем устройстве. Искомые слова отправляются службам перевода и словарей; рекламу показывает Google AdMob; проверка обновлений использует Google Play. Полный текст — в Политике конфиденциальности.'] },
     ] },
-    ja: { privacyBtn: 'プライバシーポリシーを見る', sections: [
+    ja: { sections: [
       { h: 'ライセンス', p: [
         '英語の語彙と定義：Wiktionary / WordNet を出典とし、クリエイティブ・コモンズ 表示-継承 4.0 国際ライセンス（CC BY-SA 4.0）に基づき使用しています。',
         '中国語辞書データ：CC-CEDICT を出典とし、クリエイティブ・コモンズ 表示-継承 4.0 国際ライセンス（CC BY-SA 4.0）に基づき使用しています。'] },
-      { h: 'プライバシー', p: ['アカウントは不要です。学習の進捗と設定は端末内にのみ保存されます。検索した単語は翻訳・辞書サービスに送信され、広告は Google AdMob が提供し、アップデート確認には Google Play を使用します。詳細はプライバシーポリシーをご覧ください。'] },
     ] },
-    ko: { privacyBtn: '개인정보 처리방침 보기', sections: [
+    ko: { sections: [
       { h: '라이선스', p: [
         '영어 어휘 및 정의: Wiktionary / WordNet에서 가져왔으며, 크리에이티브 커먼즈 저작자표시-동일조건변경허락 4.0 국제 라이선스(CC BY-SA 4.0)에 따라 사용합니다.',
         '중국어 사전 데이터: CC-CEDICT에서 가져왔으며, 크리에이티브 커먼즈 저작자표시-동일조건변경허락 4.0 국제 라이선스(CC BY-SA 4.0)에 따라 사용합니다.'] },
-      { h: '개인정보', p: ['계정이 필요 없습니다. 학습 진행 상황과 설정은 기기에만 저장됩니다. 조회한 단어는 번역·사전 서비스로 전송되고, 광고는 Google AdMob이 제공하며, 업데이트 확인에는 Google Play를 사용합니다. 전체 내용은 개인정보 처리방침을 확인하세요.'] },
     ] },
   };
 

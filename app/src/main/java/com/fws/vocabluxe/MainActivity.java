@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -15,6 +16,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.EdgeToEdge;
@@ -30,6 +32,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.webkit.WebViewAssetLoader;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
 import com.google.android.play.core.appupdate.AppUpdateOptions;
@@ -37,6 +44,10 @@ import com.google.android.play.core.install.InstallStateUpdatedListener;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
+
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
 
 import org.json.JSONObject;
 
@@ -58,6 +69,7 @@ import java.util.concurrent.Executors;
  * VocabLuxe: toàn bộ giao diện (sáng/tối) chạy trong WebView từ thư mục assets/www (không tải trang web nào từ Internet).
  * Cầu nối AndroidBridge: đọc giọng bằng TextToSpeech của máy (khởi động sẵn để phát âm ngay), gọi HTTPS tới đúng 4 dịch vụ tra cứu,
  * đồng bộ màu thanh hệ thống với giao diện sáng/tối, mở trang Chính sách quyền riêng tư và cập nhật trong ứng dụng (Google Play, kiểu Flexible).
+ * Quảng cáo AdMob: biểu ngữ ở đáy màn hình (xin đồng ý UMP trước) và quảng cáo mở ứng dụng (VocabLuxeApp).
  */
 public class MainActivity extends ComponentActivity {
 
@@ -77,6 +89,12 @@ public class MainActivity extends ComponentActivity {
 
     private WebView web;
     private FrameLayout rootView;
+
+    // Quảng cáo biểu ngữ (AdMob) nằm dưới WebView; ẩn khi chưa tải được hoặc khi bàn phím đang mở
+    private FrameLayout adContainer;
+    private AdView bannerView;
+    private boolean bannerLoaded = false, imeShown = false;
+    private int lastOrientation;
     private TextToSpeech tts;
     private boolean ttsReady = false;
     private boolean ttsInitializing = false;
@@ -107,20 +125,31 @@ public class MainActivity extends ComponentActivity {
         FrameLayout root = new FrameLayout(this);
         rootView = root;
         web = new WebView(this);
-        root.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        // Cột dọc: WebView chiếm phần còn lại, biểu ngữ quảng cáo ở dưới cùng
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.addView(web, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        adContainer = new FrameLayout(this);
+        adContainer.setVisibility(View.GONE);
+        column.addView(adContainer, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(column, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
+        lastOrientation = getResources().getConfiguration().orientation;
         applyTheme(dark); // giao diện web sẽ gọi lại setTheme() ngay khi tải xong, nếu người dùng đã chọn khác hệ thống
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars()
                     | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
             v.setPadding(i.left, i.top, i.right, i.bottom);
+            boolean ime = insets.isVisible(WindowInsetsCompat.Type.ime());
+            if (ime != imeShown) { imeShown = ime; updateBannerVisibility(); } // bàn phím mở: ẩn biểu ngữ cho đỡ chật
             return WindowInsetsCompat.CONSUMED;
         });
 
         setupWebView();
         initTts();          // khởi động sẵn bộ đọc giọng: lần bấm đầu tiên phát âm ngay, không phải chờ
         initInAppUpdate();
+        initAds();
 
         // Nút Back / cử chỉ Back: chỉ bật khi giao diện web đang có thứ để đóng (chi tiết từ, menu chủ đề);
         // còn lại để hệ thống xử lý (thoát app / hoạt ảnh quay về màn hình chính).
@@ -206,11 +235,23 @@ public class MainActivity extends ComponentActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (bannerView != null) bannerView.resume();
         checkForUpdate();
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation != lastOrientation) { // xoay màn hình: tính lại kích thước biểu ngữ thích ứng
+            lastOrientation = newConfig.orientation;
+            destroyBanner();
+            loadBanner();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
+        destroyBanner();
         if (updateManager != null) { try { updateManager.unregisterListener(installListener); } catch (Exception ignored) { /* bỏ qua */ } }
         net.shutdownNow();
         if (tts != null) { tts.stop(); tts.shutdown(); tts = null; }
@@ -224,8 +265,75 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onPause() {
+        if (bannerView != null) bannerView.pause();
         if (tts != null) tts.stop();
         super.onPause();
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Quảng cáo AdMob: xin đồng ý (UMP) -> khởi tạo SDK -> biểu ngữ       //
+    //  (quảng cáo mở ứng dụng nằm trong VocabLuxeApp / AppOpenAdManager)   //
+    // ------------------------------------------------------------------ //
+    private VocabLuxeApp ads() { return (VocabLuxeApp) getApplication(); }
+
+    private void initAds() {
+        try {
+            final ConsentInformation consent = UserMessagingPlatform.getConsentInformation(this);
+            ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+            consent.requestConsentInfoUpdate(this, params,
+                    () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, formError -> {
+                        if (consent.canRequestAds()) startAds();
+                    }),
+                    formError -> { if (consent.canRequestAds()) startAds(); });
+            if (consent.canRequestAds()) startAds(); // đã đồng ý từ lần trước: không cần chờ mạng
+        } catch (Throwable t) {
+            // lỗi quảng cáo không được làm hỏng ứng dụng học từ
+        }
+    }
+
+    private void startAds() {
+        ads().startAds();
+        ads().whenAdsReady(this::loadBanner);
+    }
+
+    private void loadBanner() {
+        if (adContainer == null) return;
+        adContainer.post(() -> {
+            if (isFinishing() || isDestroyed() || bannerView != null) return;
+            try {
+                int widthPx = rootView.getWidth() - rootView.getPaddingLeft() - rootView.getPaddingRight();
+                if (widthPx <= 0) widthPx = getResources().getDisplayMetrics().widthPixels;
+                int widthDp = (int) (widthPx / getResources().getDisplayMetrics().density);
+
+                AdView v = new AdView(this);
+                v.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+                v.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp));
+                v.setAdListener(new AdListener() {
+                    @Override
+                    public void onAdLoaded() { bannerLoaded = true; updateBannerVisibility(); }
+
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError error) { bannerLoaded = false; updateBannerVisibility(); }
+                });
+                adContainer.addView(v);
+                bannerView = v;
+                v.loadAd(new AdRequest.Builder().build());
+            } catch (Throwable ignored) { /* bỏ qua */ }
+        });
+    }
+
+    private void destroyBanner() {
+        bannerLoaded = false;
+        if (bannerView != null) {
+            adContainer.removeView(bannerView);
+            bannerView.destroy();
+            bannerView = null;
+        }
+        updateBannerVisibility();
+    }
+
+    private void updateBannerVisibility() {
+        if (adContainer != null) adContainer.setVisibility(bannerLoaded && !imeShown ? View.VISIBLE : View.GONE);
     }
 
     // ------------------------------------------------------------------ //
@@ -261,6 +369,7 @@ public class MainActivity extends ComponentActivity {
                 try {
                     Intent i = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ads().skipNextAppOpen();
                     startActivity(i);
                 } catch (Exception ignored) { /* máy không có màn hình cài giọng */ }
             }
@@ -366,6 +475,7 @@ public class MainActivity extends ComponentActivity {
         public void openPrivacyPolicy() {
             runOnUiThread(() -> {
                 try {
+                    ads().skipNextAppOpen(); // quay lại từ trình duyệt thì không chèn quảng cáo mở ứng dụng
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)));
                 } catch (Exception e) {
                     ttsError("browser", "");

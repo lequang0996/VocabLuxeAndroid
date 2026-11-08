@@ -595,10 +595,16 @@
   /* ---- Giấy phép & quyền riêng tư (nội dung theo ngôn ngữ giao diện) ---- */
   function renderLegal() {
     const d = I.LEGAL[UI] || I.LEGAL.en;
-    $('legalBody').innerHTML = d.sections.map((sec, i) => '<div class="lpanel"><h2>' + (i + 1) + '. ' + esc(sec.h.replace(/^\d+b?\.\s*/, '')) + '</h2>' +
+    $('legalBody').innerHTML = d.sections.map((sec) => '<div class="lpanel"><h2>' + esc(sec.h) + '</h2>' +
       (sec.p || []).map((x) => '<p>' + esc(x) + '</p>').join('') +
-      (sec.li ? '<ul>' + sec.li.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') + '</div>').join('') +
-      '<div class="lpanel"><button id="btnPrivacy" class="tonal strong">' + ic('info', 'sm') + '<span>' + esc(d.privacyBtn) + '</span></button></div>';
+      (sec.li ? '<ul>' + sec.li.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') + '</div>').join('');
+  }
+
+  /* Quyền riêng tư: mở thẳng trang Chính sách (GitHub Pages) bằng trình duyệt */
+  function openPrivacy() {
+    closeDrawer();
+    try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (err) { /* bỏ qua */ }
+    say(L('ttsBrowser'), 5000);
   }
 
   /* ---- Hướng dẫn sử dụng ---- */
@@ -735,11 +741,7 @@
   $('scrim').addEventListener('click', () => { closeDrawer(); closeSheet(); });
   $('btnBack').addEventListener('click', closeDetail);
   $('btnLegalBack').addEventListener('click', closeLegal);
-  $('legalBody').addEventListener('click', (e) => {
-    if (!e.target.closest('#btnPrivacy')) return;
-    try { if (ANDROID && ANDROID.openPrivacyPolicy) { ANDROID.openPrivacyPolicy(); return; } } catch (err) { /* bỏ qua */ }
-    say(L('ttsBrowser'), 5000);
-  });
+  $('btnPrivacy').addEventListener('click', openPrivacy);
   $('menuPop').addEventListener('click', (e) => {
     const b = e.target.closest('.mitem');
     if (!b) return;
