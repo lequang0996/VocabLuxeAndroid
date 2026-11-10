@@ -71,8 +71,8 @@
 
   /* ---- Đa ngôn ngữ giao diện (i18n.js) ---- */
   const I = window.I18N;
-  const detectUi = () => { const p = String(navigator.language || 'en').toLowerCase().split('-')[0]; return I.codes.includes(p) ? p : 'en'; };
-  let UI = I.codes.includes(state.ui) ? state.ui : detectUi();
+  // Mặc định luôn là tiếng Anh; chỉ đổi khi người dùng tự chọn trong menu Ngôn ngữ (lưu ở state.ui)
+  let UI = I.codes.includes(state.ui) ? state.ui : 'en';
   const L = (k, vars) => {
     let s = (I.T[UI] && I.T[UI][k] != null) ? I.T[UI][k] : (I.T.en[k] != null ? I.T.en[k] : k);
     if (vars) s = s.replace(/\{(\w+)\}/g, (m, n) => (vars[n] != null ? vars[n] : m));
@@ -534,7 +534,12 @@
     const can = body.classList.contains('menu-open') || body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
-  function openDetail() { body.classList.add('detail-open'); syncBack(); }
+  function ensureDetail() { // chi tiết đang mở mà trống (hoặc lỗi thời) -> vẽ lại từ đang chọn
+    if (!S.view.length) return;
+    if (!S.cur) { S.curIndex = 0; S.cur = S.view[0]; S.dirty = true; }
+    if (S.dirty || !$('word').textContent) showWord(S.cur);
+  }
+  function openDetail() { body.classList.add('detail-open'); syncBack(); try { ensureDetail(); } catch (e) { /* bỏ qua */ } }
   function closeDetail() { body.classList.remove('detail-open'); syncBack(); }
   function openMenu() {
     const r = $('btnMore').getBoundingClientRect(), m = $('menuPop');
@@ -628,11 +633,10 @@
     S.curIndex = i;
     S.cur = S.view[i];
     // người dùng chọn từ: phát âm NGAY, trước khi vẽ lại giao diện
-    if (user && state.auto_play && (open || isWide())) speak(S.lang, S.cur.w, false);
-    renderRows();
-    scrollToIndex(i);
+    if (user && state.auto_play && (open || isWide())) { try { speak(S.lang, S.cur.w, false); } catch (e) { /* bỏ qua */ } }
+    try { renderRows(); scrollToIndex(i); } catch (e) { /* bỏ qua */ }
+    if (open || isWide()) showWord(S.cur); else S.dirty = true; // màn hình hẹp: vẽ chi tiết khi người dùng mở
     if (open) openDetail();
-    if (open || isWide()) showWord(S.cur);
   }
   function move(d) { if (S.view.length) selectIndex(S.curIndex + d, { open: !isWide(), user: true }); }
 
@@ -641,6 +645,8 @@
     for (const id of ['chipTopic', 'chipPos', 'word', 'phon', 'mean', 'more', 'defEn', 'ex', 'exPhon', 'exVi']) $(id).textContent = '';
     $('btnReveal').style.display = 'none'; $('btnExPlay').style.display = 'none';
     $('btnLearn').textContent = ''; $('btnFav').textContent = '';
+    S.dirty = false;
+    if (!isWide() && body.classList.contains('detail-open')) closeDetail();
   }
 
   function showWord(w) {
@@ -648,14 +654,13 @@
     const tok = ++S.token, lang = S.lang;
     S.info = {};
     S.reveal = !(state.review || S.practice);
-    $('chipTopic').textContent = topicName(TOPIC_MAP[w.topic] ? w.topic : 'general');
+    S.dirty = false;
+    $('word').textContent = w.w; // luôn hiện từ trước, dù các bước bên dưới có lỗi
+    try { $('chipTopic').textContent = topicName(TOPIC_MAP[w.topic] ? w.topic : 'general'); } catch (e) { $('chipTopic').textContent = ''; }
     let extra = w.pos || '';
     if (w.note) extra = (extra + '  (' + w.note + ')').trim();
     $('chipPos').textContent = extra;
-    $('word').textContent = w.w;
-    $('dscroll').scrollTop = 0;
-    refreshMarks();
-    render();
+    try { $('dscroll').scrollTop = 0; refreshMarks(); render(); } catch (e) { /* bỏ qua */ }
     fetchInfo(lang, w, (d) => { if (tok === S.token) { Object.assign(S.info, d); render(); } })
       .catch((e) => { if (tok === S.token) { Object.assign(S.info, { failed: ['tr', 'ex'], done: ['tr', 'dic', 'ex'], err: String(e.message || e).slice(0, 160) }); render(); } });
   }
@@ -828,19 +833,25 @@
     return false;
   };
 
+  const healDetail = () => { if (document.visibilityState !== 'hidden' && (isWide() || body.classList.contains('detail-open'))) { try { ensureDetail(); } catch (e) { /* bỏ qua */ } } };
+  document.addEventListener('visibilitychange', healDetail);
+  window.addEventListener('pageshow', healDetail);
+
   /* ---------------- khởi động ---------------- */
   (async () => {
     applyTheme(state.theme === 'light' || state.theme === 'dark' ? state.theme : (systemDark() ? 'dark' : 'light'), false);
     applyI18n();
     warmTts(LANGS[state.lang] || LANGS.en);
     buildLangButtons();
-    await KV.ready;
+    await Promise.race([KV.ready, new Promise((r) => setTimeout(r, 2500))]);
     try { TOPICS = await (await fetch('data/topics.json')).json(); } catch (e) { TOPICS = []; }
     if (!TOPICS.find((t) => t.id === 'general')) TOPICS.push({ id: 'general', name: 'Chung', sym: '•' });
     TOPIC_MAP = Object.fromEntries(TOPICS.map((t) => [t.id, t]));
     $('swReview').checked = !!state.review;
     $('swAuto').checked = !!state.auto_play;
-    await loadLanguage(LANGS[state.lang] ? state.lang : 'en');
+    const startLang = LANGS[state.lang] ? state.lang : 'en';
+    try { await loadLanguage(startLang); } catch (e) { /* thử lại bên dưới */ }
+    if (!S.words.length) { await new Promise((r) => setTimeout(r, 800)); try { await loadLanguage(startLang); } catch (e) { say(L('loadFail', { lang: langName(startLang), err: String(e.message || e) }), 8000); } }
     try { if (ANDROID && ANDROID.updateReady && ANDROID.updateReady()) window.__updateReady(); } catch (e) { /* bỏ qua */ }
     if (!state.guided) openGuide(); // lần đầu mở app: hiện hướng dẫn sử dụng
   })();
