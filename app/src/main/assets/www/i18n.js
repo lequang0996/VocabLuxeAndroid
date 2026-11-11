@@ -50,6 +50,7 @@ window.I18N = (() => {
       exNone: 'Chưa tìm thấy ngữ cảnh cho từ này.', exLoading: 'Đang tìm ngữ cảnh…', enPrefix: '(Tiếng Anh)',
       updDone: 'Đã tải xong bản cập nhật.', updRestart: 'Khởi động lại', language: 'Ngôn ngữ',
       legalTitle: 'Giấy phép', lang_en: 'Tiếng Anh', lang_zh: 'Tiếng Trung',
+      pickTitle: 'Chọn ngôn ngữ', pickSub: 'Bạn có thể đổi lại bất cứ lúc nào trong Menu.', pickGo: 'Tiếp tục',
     },
     en: {
       menu: 'Menu',
@@ -75,6 +76,7 @@ window.I18N = (() => {
       exNone: 'No context found for this word.', exLoading: 'Finding context…', enPrefix: '(English)',
       updDone: 'An update has been downloaded.', updRestart: 'Restart', language: 'Language',
       legalTitle: 'Licenses', lang_en: 'English', lang_zh: 'Chinese',
+      pickTitle: 'Choose your language', pickSub: 'You can change this anytime in the menu.', pickGo: 'Continue',
     },
     zh: {
       menu: '菜单',
@@ -100,6 +102,7 @@ window.I18N = (() => {
       exNone: '暂未找到该词的语境。', exLoading: '正在查找语境…', enPrefix: '（英文）',
       updDone: '更新已下载完成。', updRestart: '重新启动', language: '语言',
       legalTitle: '许可', lang_en: '英语', lang_zh: '中文',
+      pickTitle: '选择语言', pickSub: '你可以随时在菜单中更改。', pickGo: '继续',
     },
     es: {
       menu: 'Menú',
@@ -125,6 +128,7 @@ window.I18N = (() => {
       exNone: 'No se encontró contexto para esta palabra.', exLoading: 'Buscando contexto…', enPrefix: '(Inglés)',
       updDone: 'Se ha descargado una actualización.', updRestart: 'Reiniciar', language: 'Idioma',
       legalTitle: 'Licencias', lang_en: 'Inglés', lang_zh: 'Chino',
+      pickTitle: 'Elige tu idioma', pickSub: 'Puedes cambiarlo cuando quieras en el menú.', pickGo: 'Continuar',
     },
     pt: {
       menu: 'Menu',
@@ -150,6 +154,7 @@ window.I18N = (() => {
       exNone: 'Nenhum contexto encontrado para esta palavra.', exLoading: 'Procurando contexto…', enPrefix: '(Inglês)',
       updDone: 'Uma atualização foi baixada.', updRestart: 'Reiniciar', language: 'Idioma',
       legalTitle: 'Licenças', lang_en: 'Inglês', lang_zh: 'Chinês',
+      pickTitle: 'Escolha o idioma', pickSub: 'Você pode alterar a qualquer momento no menu.', pickGo: 'Continuar',
     },
     ru: {
       menu: 'Меню',
@@ -175,6 +180,7 @@ window.I18N = (() => {
       exNone: 'Для этого слова контекст не найден.', exLoading: 'Ищем контекст…', enPrefix: '(Английский)',
       updDone: 'Обновление загружено.', updRestart: 'Перезапустить', language: 'Язык',
       legalTitle: 'Лицензии', lang_en: 'Английский', lang_zh: 'Китайский',
+      pickTitle: 'Выберите язык', pickSub: 'Это можно изменить в любой момент в меню.', pickGo: 'Продолжить',
     },
     ja: {
       menu: 'メニュー',
@@ -200,6 +206,7 @@ window.I18N = (() => {
       exNone: 'この単語の用例は見つかりませんでした。', exLoading: '用例を探しています…', enPrefix: '（英語）',
       updDone: 'アップデートのダウンロードが完了しました。', updRestart: '再起動', language: '言語',
       legalTitle: 'ライセンス', lang_en: '英語', lang_zh: '中国語',
+      pickTitle: '言語を選択', pickSub: 'メニューからいつでも変更できます。', pickGo: '続ける',
     },
     ko: {
       menu: '메뉴',
@@ -225,6 +232,7 @@ window.I18N = (() => {
       exNone: '이 단어의 용례를 찾지 못했습니다.', exLoading: '용례를 찾는 중…', enPrefix: '(영어)',
       updDone: '업데이트 다운로드가 완료되었습니다.', updRestart: '다시 시작', language: '언어',
       legalTitle: '라이선스', lang_en: '영어', lang_zh: '중국어',
+      pickTitle: '언어 선택', pickSub: '메뉴에서 언제든지 변경할 수 있어요.', pickGo: '계속',
     },
   };
 

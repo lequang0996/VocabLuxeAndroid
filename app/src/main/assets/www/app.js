@@ -531,7 +531,7 @@
   // Báo cho Android biết nút Back có việc để làm không (đóng chi tiết / đóng menu)
   function syncBack() {
     if (!ANDROID) return;
-    const can = body.classList.contains('menu-open') || body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
+    const can = body.classList.contains('lp-open') || body.classList.contains('menu-open') || body.classList.contains('guide-open') || body.classList.contains('legal-open') || body.classList.contains('drawer-open') || body.classList.contains('sheet-open') || (!isWide() && body.classList.contains('detail-open'));
     try { ANDROID.canGoBack(can); } catch (e) { /* bỏ qua */ }
   }
   function ensureDetail() { // chi tiết đang mở mà trống (hoặc lỗi thời) -> vẽ lại từ đang chọn
@@ -578,6 +578,7 @@
   function setUi(c) {
     if (!I.codes.includes(c) || c === UI) return;
     UI = c; state.ui = c; saveState();
+    if (body.classList.contains('lp-open')) renderLangPick();
     for (const k of Object.keys(dataCache)) for (const w of dataCache[k].words) w._h = hayOf(w);
     applyI18n();
     applyTheme(currentTheme(), false);
@@ -595,6 +596,33 @@
     $('guide').setAttribute('aria-label', L('guideBtn'));
     $('legal').setAttribute('aria-label', L('legalTitle'));
     if (body.classList.contains('legal-open')) renderLegal();
+  }
+
+  /* ---- Popup chọn ngôn ngữ giao diện (lần đầu mở app) ---- */
+  const deviceUi = () => {
+    const l = String((navigator.languages && navigator.languages[0]) || navigator.language || 'en').toLowerCase().slice(0, 2);
+    return I.codes.includes(l) ? l : 'en';
+  };
+  function renderLangPick() {
+    $('lpGrid').innerHTML = I.ORDER.map((c) => {
+      const on = c === UI, sub = I.NAMES[UI][c];
+      return '<button class="lp-opt' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-ui="' + c + '">' +
+        '<span class="lp-flag" aria-hidden="true">' + I.FLAG[c] + '</span>' +
+        '<span class="lp-names"><b lang="' + c + '">' + esc(I.NATIVE[c]) + '</b>' + (sub && sub !== I.NATIVE[c] ? '<small>' + esc(sub) + '</small>' : '') + '</span>' +
+        '<span class="lp-tick" aria-hidden="true">' + ic('check') + '</span></button>';
+    }).join('');
+  }
+  function openLangPick() {
+    const d = deviceUi();
+    if (d !== UI) setUi(d); // gợi ý sẵn ngôn ngữ của thiết bị (nếu app hỗ trợ)
+    renderLangPick();
+    body.classList.add('lp-open'); syncBack();
+  }
+  function closeLangPick() {
+    body.classList.remove('lp-open');
+    state.langPicked = true; saveState();
+    syncBack();
+    if (!state.guided) openGuide(); // chọn xong → sang phần hướng dẫn sử dụng
   }
 
   /* ---- Giấy phép & quyền riêng tư (nội dung theo ngôn ngữ giao diện) ---- */
@@ -756,6 +784,11 @@
     else if (b.id === 'miGuide') openGuide();
   });
   document.addEventListener('pointerdown', (e) => { if (body.classList.contains('menu-open') && !e.target.closest('#menuPop') && !e.target.closest('#btnMore')) closeMenu(); }, true);
+  $('lpGrid').addEventListener('click', (e) => {
+    const b = e.target.closest('.lp-opt');
+    if (b) setUi(b.dataset.ui);
+  });
+  $('btnLpGo').addEventListener('click', closeLangPick);
   $('btnGuideSkip').addEventListener('click', closeGuide);
   $('btnGuidePrev').addEventListener('click', () => { if (gStep > 0) { gStep--; renderGuide(); } });
   $('btnGuideNext').addEventListener('click', () => { if (gStep < GUIDE_ICONS.length - 1) { gStep++; renderGuide(); } else closeGuide(); });
@@ -824,6 +857,7 @@
 
   // nút Back của Android: trả về true nếu giao diện đã tự xử lý
   window.__back = () => {
+    if (body.classList.contains('lp-open')) return true; // bắt buộc chọn ngôn ngữ ở lần đầu
     if (body.classList.contains('menu-open')) { closeMenu(); return true; }
     if (body.classList.contains('guide-open')) { closeGuide(); return true; }
     if (body.classList.contains('legal-open')) { closeLegal(); return true; }
@@ -853,6 +887,7 @@
     try { await loadLanguage(startLang); } catch (e) { /* thử lại bên dưới */ }
     if (!S.words.length) { await new Promise((r) => setTimeout(r, 800)); try { await loadLanguage(startLang); } catch (e) { say(L('loadFail', { lang: langName(startLang), err: String(e.message || e) }), 8000); } }
     try { if (ANDROID && ANDROID.updateReady && ANDROID.updateReady()) window.__updateReady(); } catch (e) { /* bỏ qua */ }
-    if (!state.guided) openGuide(); // lần đầu mở app: hiện hướng dẫn sử dụng
+    if (!state.langPicked && !state.guided) openLangPick(); // lần đầu mở app: chọn ngôn ngữ trước,
+    else if (!state.guided) openGuide(); // rồi mới đến hướng dẫn sử dụng
   })();
 })();

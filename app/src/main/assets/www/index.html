@@ -197,6 +197,17 @@
     </div>
   </section>
 
+  <!-- Popup chọn ngôn ngữ (chỉ hiện lần đầu mở app) -->
+  <div id="langPick" role="dialog" aria-modal="true" aria-labelledby="lpTitle">
+    <div class="lp-card">
+      <div class="lp-badge" aria-hidden="true"><svg class="ic"><use href="#i-globe"/></svg></div>
+      <h2 id="lpTitle" class="lp-title" data-i18n="pickTitle"></h2>
+      <p class="lp-sub" data-i18n="pickSub"></p>
+      <div id="lpGrid" class="lp-grid" role="radiogroup"></div>
+      <button id="btnLpGo" class="lp-go"><span data-i18n="pickGo"></span><svg class="ic sm"><use href="#i-right"/></svg></button>
+    </div>
+  </div>
+
   <!-- Bảng chọn cấp độ (thay cho dropdown mặc định) -->
   <div id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet-handle"></div>
